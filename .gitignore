@@ -1,0 +1,9 @@
+node_modules
+.next
+.env.local
+data/orders.json
+data/settings.json
+*.tmp
+data/uploads
+data/products.live.json
+*.log

@@ -1,0 +1,76 @@
+[
+  {
+    "slug": "curry-leaf-podi",
+    "name": "Curry Leaf Podi",
+    "tamilName": "கருவேப்பிலை பொடி",
+    "price": 69,
+    "weight": "100g",
+    "stock": 48,
+    "active": true,
+    "category": "Podi",
+    "badge": "Best Seller",
+    "images": [
+      "/images/curry-pouch.jpg",
+      "/images/curry-bowl.jpg",
+      "/images/curry-serving.jpg",
+      "/images/curry-info.jpg"
+    ],
+    "short": "Aromatic curry leaf podi to mix with hot rice and ghee or oil.",
+    "description": "A traditional South Indian curry leaf podi made with curry leaves, dals and roasted spices. Mix a spoonful with hot rice and ghee or oil for a quick homemade-style meal, or enjoy it with idli, dosa and chapati.",
+    "ingredients": "Curry Leaves, Urad Dal, Channa Dal, Coriander, Red Chilli, Cumin, Black Pepper, Asafoetida, Salt (as per taste).",
+    "usage": [
+      "Mix with hot rice and ghee / oil.",
+      "Best with idli, dosa, chapati and rice."
+    ],
+    "storage": "Keep in a cool, dry place. Use a dry spoon. Close the pack after use."
+  },
+  {
+    "slug": "moringa-podi",
+    "name": "Moringa Podi",
+    "tamilName": "முருங்கை இலை பொடி",
+    "price": 69,
+    "weight": "100g",
+    "stock": 50,
+    "active": true,
+    "category": "Podi",
+    "badge": "New",
+    "images": [
+      "/images/moringa-pouch.jpg",
+      "/images/moringa-bowl.jpg",
+      "/images/moringa-serving.jpg",
+      "/images/moringa-info.jpg"
+    ],
+    "short": "Moringa leaf podi with dals and spices, ready to eat with rice.",
+    "description": "A homemade-style moringa (murungai) leaf podi blended with dals and spices. Stir it into hot rice with ghee or oil, or sprinkle it on idli and dosa for an everyday South Indian meal.",
+    "ingredients": "Moringa Leaves, Urad Dal, Channa Dal, Coriander, Red Chilli, Cumin, Black Pepper, Asafoetida, Salt (as per taste).",
+    "usage": [
+      "Mix with hot rice and ghee / oil.",
+      "Best with idli, dosa, chapati and rice."
+    ],
+    "storage": "Keep in a cool, dry place. Use a dry spoon. Close the pack after use."
+  },
+  {
+    "slug": "paruppu-podi",
+    "name": "Paruppu Podi",
+    "tamilName": "பருப்பு பொடி",
+    "price": 69,
+    "weight": "100g",
+    "stock": 50,
+    "active": true,
+    "category": "Podi",
+    "badge": "Best Seller",
+    "images": [
+      "/images/paruppu-pouch.jpg",
+      "/images/paruppu-bowl.jpg",
+      "/images/paruppu-serving.jpg"
+    ],
+    "short": "Classic dal podi for hot rice, ghee and a papad on the side.",
+    "description": "A classic South Indian paruppu (dal) podi made from roasted dals and spices. Mix with hot rice and ghee for a comforting two-minute meal, or pair it with idli, dosa and chapati.",
+    "ingredients": "Toor Dal, Moong Dal, Chana Dal, Urad Dal, Red Chilli, Black Pepper, Cumin, Asafoetida, Salt (as per taste).",
+    "usage": [
+      "Mix with hot rice and ghee / oil.",
+      "Best with idli, dosa, chapati and rice."
+    ],
+    "storage": "Keep in a cool, dry place. Use a dry spoon. Close the pack after use."
+  }
+]
