@@ -1,6 +1,6 @@
 import Breadcrumb from '@/components/Breadcrumb';
 import { SITE, fullAddress, mapsEmbed, mapsDirections } from '@/lib/site';
-import { getSettings } from '@/lib/db';
+import { getSettings } from '@/lib/storefront';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Contact PODIKKAARAN – Podi Shop in Chennai', description: 'Contact PODIKKAARAN, homemade podi in Nerkundram, Chennai. Get directions, order help and delivery information.', alternates: { canonical: '/contact' } };
 export default async function Contact() {

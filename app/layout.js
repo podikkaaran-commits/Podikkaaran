@@ -1,6 +1,7 @@
 import './globals.css';
 import { SITE } from '@/lib/site';
-import { getProducts, getSettings, publicSettings } from '@/lib/db';
+import { getProducts, getSettings } from '@/lib/storefront';
+import { publicSettings } from '@/lib/db';
 import CartProvider from '@/components/CartProvider';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -21,8 +22,9 @@ export const metadata = {
 export const viewport = { themeColor: '#174D2B' };
 
 export default async function RootLayout({ children }) {
-  const settings = publicSettings(await getSettings());
-  const products = (await getProducts()).filter((p) => p.active).map(({ slug, name, price, originalPrice, weight, stock, images }) => ({ slug, name, price, originalPrice, weight, stock, images }));
+  const [catalogue, rawSettings] = await Promise.all([getProducts(), getSettings()]);
+  const settings = publicSettings(rawSettings);
+  const products = catalogue.filter((p) => p.active).map(({ slug, name, price, originalPrice, weight, stock, images }) => ({ slug, name, price, originalPrice, weight, stock, images }));
   return (
     <html lang="en-IN">
       <head>

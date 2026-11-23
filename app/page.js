@@ -1,7 +1,10 @@
 import ProductPrice from '@/components/ProductPrice';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getProducts, getSettings } from '@/lib/db';
+import curryHero from '../public/images/curry-hero.webp';
+import moringaHero from '../public/images/moringa-hero.webp';
+import paruppuHero from '../public/images/paruppu-hero.webp';
+import { getProducts, getSettings } from '@/lib/storefront';
 import { rupee, SITE, fullAddress, mapsLink } from '@/lib/site';
 import { FAQ, faqSchema } from '@/lib/schema';
 import { POSTS } from '@/lib/blog';
@@ -16,7 +19,8 @@ const WHY = [['🏡', 'Homemade Taste', 'Small-batch podi made the way it is mad
 const LEAVES = [['4%', '8%', '-20deg', '0s'], ['90%', '14%', '30deg', '1.2s'], ['8%', '70%', '15deg', '2s'], ['86%', '76%', '-35deg', '.6s']];
 
 export default async function Home() {
-  const products = (await getProducts()).filter((p) => p.active), s = await getSettings(), faq = FAQ(s);
+  const [catalogue, s] = await Promise.all([getProducts(), getSettings()]);
+  const products = catalogue.filter(p => p.active), faq = FAQ(s);
   return (
     <>
       <JsonLd data={faqSchema(s)} />
@@ -32,8 +36,8 @@ export default async function Home() {
             <p className="text-sm">{products[0] && <><ProductPrice product={products[0]} /> per {products[0].weight} pack</>} · Delivery {rupee(s.deliveryChennai)} Chennai / {rupee(s.deliveryTN)} Tamil Nadu / {rupee(s.deliveryOther)} other states</p>
           </div>
           <div className="relative mx-auto flex h-[340px] w-full max-w-md items-end justify-center sm:h-[420px]" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
-            {[['/images/curry-pouch.jpg', 'Curry Leaf Podi pouch', '-rotate-6 translate-x-6 z-10', '.1s'], ['/images/moringa-pouch.jpg', 'Moringa Podi pouch', 'z-20 scale-110', '.35s'], ['/images/paruppu-pouch.jpg', 'Paruppu Podi pouch', 'rotate-6 -translate-x-6 z-10', '.6s']].map(([src, alt, cls, d]) => (
-              <div key={src} className={`pouch relative h-[270px] w-[34%] sm:h-[340px] ${cls}`} style={{ '--d': d }}><Image src={src} alt={alt} fill priority sizes="180px" className="object-contain mix-blend-multiply drop-shadow-xl" /></div>
+            {[[curryHero, 'Curry Leaf Podi pouch', '-rotate-6 translate-x-6 z-10', '.1s'], [moringaHero, 'Moringa Podi pouch', 'z-20 scale-110', '.35s'], [paruppuHero, 'Paruppu Podi pouch', 'rotate-6 -translate-x-6 z-10', '.6s']].map(([src, alt, cls, d]) => (
+              <div key={src.src} className={`pouch relative h-[270px] w-[34%] sm:h-[340px] ${cls}`} style={{ '--d': d }}><Image src={src} alt={alt} fill priority unoptimized sizes="180px" className="object-contain mix-blend-multiply drop-shadow-xl" /></div>
             ))}
           </div>
         </div>

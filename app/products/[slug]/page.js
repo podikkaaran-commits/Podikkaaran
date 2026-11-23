@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProducts, getProduct } from '@/lib/db';
+import { getProducts, getProduct } from '@/lib/storefront';
 import ProductBuy from '@/components/ProductBuy';
 import ProductGrid from '@/components/ProductGrid';
 import Breadcrumb from '@/components/Breadcrumb';

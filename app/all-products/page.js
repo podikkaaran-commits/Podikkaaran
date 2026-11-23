@@ -1,4 +1,4 @@
-import { getProducts } from '@/lib/db';
+import { getProducts } from '@/lib/storefront';
 import ProductGrid from '@/components/ProductGrid';
 import Breadcrumb from '@/components/Breadcrumb';
 export const dynamic = 'force-dynamic';

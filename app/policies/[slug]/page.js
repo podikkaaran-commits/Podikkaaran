@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
-import { getSettings } from '@/lib/db';
+import { getSettings } from '@/lib/storefront';
 import { fullAddress } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 const T = { 'shipping-policy': 'Shipping Policy', 'return-refund-policy': 'Return & Refund Policy', 'privacy-policy': 'Privacy Policy', 'terms-and-conditions': 'Terms & Conditions' };
