@@ -20,9 +20,9 @@ export const metadata = {
 };
 export const viewport = { themeColor: '#174D2B' };
 
-export default function RootLayout({ children }) {
-  const settings = publicSettings(getSettings());
-  const products = getProducts().filter((p) => p.active).map(({ slug, name, price, weight, stock, images }) => ({ slug, name, price, weight, stock, images }));
+export default async function RootLayout({ children }) {
+  const settings = publicSettings(await getSettings());
+  const products = (await getProducts()).filter((p) => p.active).map(({ slug, name, price, originalPrice, weight, stock, images }) => ({ slug, name, price, originalPrice, weight, stock, images }));
   return (
     <html lang="en-IN">
       <head>

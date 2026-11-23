@@ -1,10 +1,10 @@
 'use client';
+import ProductPrice from '@/components/ProductPrice';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartProvider';
-import { rupee } from '@/lib/site';
 
 export default function ProductCard({ p, delay = 0 }) {
   const { add } = useCart(); const router = useRouter();
@@ -22,7 +22,7 @@ export default function ProductCard({ p, delay = 0 }) {
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-lg font-semibold"><Link href={`/products/${p.slug}`}>{p.name}</Link></h3>
         <p className="text-xs">{p.tamilName} · {p.weight}</p>
-        <p className="mt-1 text-xl font-bold">{rupee(p.price)}</p>
+        <p className="mt-1 text-xl font-bold"><ProductPrice product={p} /></p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button className="btn-primary" disabled={out} onClick={() => add(p.slug, 1)}>Add to Cart</button>
           <button className="btn-accent" disabled={out} onClick={buyNow}>Buy Now</button>
@@ -36,7 +36,7 @@ export default function ProductCard({ p, delay = 0 }) {
             <div className="relative aspect-square bg-cream"><Image src={p.images[1] || p.images[0]} alt={p.name} fill sizes="400px" className="object-cover" /></div>
             <div className="p-5">
               <button onClick={() => setQuick(false)} className="float-right rounded-full p-1" aria-label="Close">✕</button>
-              <h3 className="text-2xl">{p.name}</h3><p className="text-lg font-bold">{rupee(p.price)} · {p.weight}</p>
+              <h3 className="text-2xl">{p.name}</h3><p className="text-lg font-bold"><ProductPrice product={p} /> · {p.weight}</p>
               <p className="mt-2 text-sm">{p.description}</p>
               <p className="mt-2 text-xs"><b>Ingredients:</b> {p.ingredients}</p>
               <div className="mt-4 flex gap-2"><button className="btn-primary" disabled={out} onClick={() => { add(p.slug, 1); setQuick(false); }}>Add to Cart</button><Link href={`/products/${p.slug}`} className="btn-outline">Full details</Link></div>

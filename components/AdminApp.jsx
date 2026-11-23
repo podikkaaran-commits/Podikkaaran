@@ -75,11 +75,12 @@ function Orders({ orders, reload, note }) {
 function Products({ products, reload, note }) {
   const [rows, setRows] = useState(products);
   const up = (slug, k, v) => setRows(rows.map((r) => (r.slug === slug ? { ...r, [k]: v } : r)));
-  const save = async () => { const r = await api({ kind: 'products', products: rows }); if (r.ok) { note('Products saved'); reload(); } };
+  const save = async () => { const r = await api({ kind: 'products', products: rows }); if (r.ok) { note('Products saved'); reload(); } else note((await r.json()).error || 'Could not save prices'); };
   return (<div className="space-y-6">
-    <div className="card overflow-x-auto p-4"><h2 className="mb-3 text-xl">Existing products</h2><table className="w-full text-sm"><thead><tr className="text-left"><th>Product</th><th>Price (₹)</th><th>Stock</th><th>Active</th></tr></thead><tbody>
+    <div className="card overflow-x-auto p-4"><h2 className="mb-3 text-xl">Existing products</h2><table className="w-full text-sm"><thead><tr className="text-left"><th>Product</th><th>Original price (₹)</th><th>Selling price (₹)</th><th>Stock</th><th>Active</th></tr></thead><tbody>
       {rows.map((p) => <tr key={p.slug} className="border-t border-brown/10"><td className="py-2">{p.name} ({p.weight})</td>
-        <td><input className="input !w-24" type="number" min="0" value={p.price} onChange={(e) => up(p.slug, 'price', e.target.value)} /></td>
+        <td><input aria-label="Original price" className="input !w-24" type="number" min="0" value={p.originalPrice ?? ''} onChange={(e) => up(p.slug, 'originalPrice', e.target.value)} /></td>
+        <td><input aria-label="Selling price" className="input !w-24" type="number" min="1" value={p.price} onChange={(e) => up(p.slug, 'price', e.target.value)} /></td>
         <td><input className="input !w-24" type="number" min="0" value={p.stock} onChange={(e) => up(p.slug, 'stock', e.target.value)} /></td>
         <td><input type="checkbox" checked={p.active} onChange={(e) => up(p.slug, 'active', e.target.checked)} aria-label={`${p.name} active`} /></td></tr>)}</tbody></table>
       <button onClick={save} className="btn-primary mt-4">Save changes</button></div>
@@ -87,7 +88,7 @@ function Products({ products, reload, note }) {
   </div>);
 }
 
-const EMPTY = { name: '', tamilName: '', price: '', weight: '100g', stock: '', badge: '', short: '', description: '', ingredients: '', usage: '', storage: '', images: [] };
+const EMPTY = { name: '', tamilName: '', originalPrice: '', price: '', weight: '100g', stock: '', badge: '', short: '', description: '', ingredients: '', usage: '', storage: '', images: [] };
 function AddProduct({ reload, note }) {
   const [f, setF] = useState(EMPTY), [err, setErr] = useState(''), [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -111,7 +112,7 @@ function AddProduct({ reload, note }) {
     <form onSubmit={submit} className="card space-y-4 p-5"><h2 className="text-xl">Add new product</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         {T('name', 'Product name *')}{T('tamilName', 'Tamil name (optional)')}
-        {T('price', 'Price (₹) *', { type: 'number' })}{T('weight', 'Weight (e.g. 100g)')}
+        {T('originalPrice', 'Original price (₹)', { type: 'number' })}{T('price', 'Selling price (₹) *', { type: 'number' })}{T('weight', 'Weight (e.g. 100g)')}
         {T('stock', 'Stock quantity', { type: 'number' })}{T('badge', 'Badge (e.g. New)')}
         {T('short', 'Short description (1 line)', { wide: true })}
         {T('description', 'Full description', { wide: true, area: true })}

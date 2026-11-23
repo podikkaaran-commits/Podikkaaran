@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { redirect, useSearchParams } from 'next/navigation';
 import { rupee } from '@/lib/site';
 import { track } from '@/lib/analytics';
 
 function Order() {
   const sp = useSearchParams();
-  const [id, setId] = useState(sp.get('id') || ''), [m, setM] = useState(sp.get('m') || ''), [o, setO] = useState(null), [err, setErr] = useState('');
+  const [o, setO] = useState(null), [err, setErr] = useState('');
   const isNew = sp.get('new') === '1';
   async function load(i, mm) {
     setErr(''); const r = await fetch(`/api/orders/${encodeURIComponent(i.trim())}?mobile=${mm}`); const j = await r.json();
@@ -22,15 +22,12 @@ function Order() {
       }
     } catch {}
   }
-  useEffect(() => { if (sp.get('id') && sp.get('m')) load(sp.get('id'), sp.get('m')); }, []); // eslint-disable-line
+  useEffect(() => { if (sp.get('id') && sp.get('m')) load(sp.get('id'), sp.get('m')).catch(() => setErr('Could not load your order. Please refresh to try again.')); }, []); // eslint-disable-line
+  if (!sp.get('id') || !sp.get('m')) redirect('/shop');
   return (
     <div className="wrap max-w-2xl py-10">
-      {isNew && o && <div className="mb-5 rounded-2xl bg-forest p-5 text-cream"><h1 className="!text-turmeric text-3xl">Thank you! Order placed 🎉</h1><p className="mt-1">Your order ID is <b>{o.id}</b>. Save it to track your order.</p></div>}
-      {!isNew && <h1 className="mb-4 text-3xl">Track your order</h1>}
-      {!o && <form onSubmit={(e) => { e.preventDefault(); load(id, m); }} className="card space-y-3 p-5">
-        <div><label className="label" htmlFor="oid">Order ID</label><input id="oid" className="input" value={id} onChange={(e) => setId(e.target.value)} placeholder="PK261119-ABCD1234" required /></div>
-        <div><label className="label" htmlFor="om">Mobile number used for the order</label><input id="om" className="input" inputMode="numeric" maxLength={10} value={m} onChange={(e) => setM(e.target.value.replace(/\D/g, ''))} required /></div>
-        {err && <p className="err" role="alert">{err}</p>}<button className="btn-primary">Track order</button></form>}
+      {isNew && o && <div className="mb-5 rounded-2xl bg-forest p-5 text-cream"><h1 className="!text-turmeric text-3xl">Thank you! Order placed 🎉</h1><p className="mt-1">Your order ID is <b>{o.id}</b>.</p></div>}
+      {!o && (err ? <p className="err" role="alert">{err}</p> : <p role="status">Loading your order…</p>)}
       {o && <div className="card space-y-3 p-5">
         <div className="flex flex-wrap justify-between gap-2"><span>Order <b>{o.id}</b></span><span className="rounded-full bg-turmeric/40 px-3 py-0.5 text-sm font-bold">{o.status}</span></div>
         <p className="text-sm">Payment: {o.payment.method === 'cod' ? 'Cash on Delivery' : o.payment.status === 'paid' ? 'Paid online' : 'Awaiting payment'} · Delivering to {o.city}</p>

@@ -25,7 +25,6 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-1 text-forest">
           <button aria-label="Search" onClick={() => setSearch((s) => !s)} className="rounded-full p-2 hover:bg-cream"><Ico d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3" /></button>
-          <Link href="/order" aria-label="Track your order" className="rounded-full p-2 hover:bg-cream"><Ico d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" /></Link>
           <button aria-label={`Open cart, ${count} items`} onClick={() => setOpen(true)} className="relative rounded-full p-2 hover:bg-cream">
             <Ico d="M6 6h15l-1.5 9h-12zM6 6L5 3H2M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z" />
             {count > 0 && <span key={bump} className="bump absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-turmeric px-1 text-[11px] font-bold text-brown">{count}</span>}

@@ -3,8 +3,8 @@ import { SITE, fullAddress, mapsEmbed, mapsDirections } from '@/lib/site';
 import { getSettings } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Contact PODIKKAARAN – Podi Shop in Chennai', description: 'Contact PODIKKAARAN, homemade podi in Nerkundram, Chennai. Get directions, order help and delivery information.', alternates: { canonical: '/contact' } };
-export default function Contact() {
-  const wa = getSettings().whatsappNumber;
+export default async function Contact() {
+  const wa = (await getSettings()).whatsappNumber;
   return (<><Breadcrumb list={[['Contact', '/contact']]} />
     <div className="wrap grid gap-8 py-10 md:grid-cols-2">
       <div className="space-y-3"><h1 className="text-3xl sm:text-4xl">Contact Us</h1>

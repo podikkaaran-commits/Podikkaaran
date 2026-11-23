@@ -13,7 +13,7 @@ export default function Footer({ whatsapp }) {
           <p className="text-sm opacity-80">{SITE.tagline2}</p>
         </div>
         <nav aria-label="Footer"><h2 className="mb-3 text-lg !text-turmeric">Explore</h2><ul className="space-y-1.5 text-sm">
-          <L href="/about">About Us</L><L href="/shop">Shop Products</L><L href="/blog">Blog</L><L href="/contact">Contact Us</L><L href="/order">Track Order</L>
+          <L href="/about">About Us</L><L href="/shop">Shop Products</L><L href="/blog">Blog</L><L href="/contact">Contact Us</L>
           {whatsapp && <L ext href={`https://wa.me/${whatsapp}`}>WhatsApp</L>}
           {SITE.instagram && <L ext href={SITE.instagram}>Instagram</L>}{SITE.facebook && <L ext href={SITE.facebook}>Facebook</L>}
         </ul></nav>

@@ -3,11 +3,11 @@ import { buildOrder, insertOrder, reserveStock, notifyAdmin } from '@/lib/orders
 
 export async function POST(req) {
   let body; try { body = await req.json(); } catch { return NextResponse.json({ error: 'Bad request' }, { status: 400 }); }
-  const { order, errors } = buildOrder(body);
+  const { order, errors } = await buildOrder(body);
   if (errors) return NextResponse.json({ errors }, { status: 422 });
 
   if (order.payment.method === 'cod') {
-    reserveStock(order.items); insertOrder(order); await notifyAdmin(order);
+    await reserveStock(order.items); await insertOrder(order); await notifyAdmin(order);
     return NextResponse.json({ orderId: order.id, mobile: order.customer.mobile, method: 'cod' });
   }
 
@@ -22,6 +22,6 @@ export async function POST(req) {
   if (!r.ok) return NextResponse.json({ errors: { payment: 'Could not start online payment. Please try again or choose COD.' } }, { status: 502 });
   const rz = await r.json();
   order.payment.razorpayOrderId = rz.id;
-  insertOrder(order);
+  await insertOrder(order);
   return NextResponse.json({ orderId: order.id, mobile: order.customer.mobile, method: 'razorpay', razorpay: { keyId: key, orderId: rz.id, amount: rz.amount } });
 }

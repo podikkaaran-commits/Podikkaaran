@@ -7,3 +7,4 @@ data/settings.json
 data/uploads
 data/products.live.json
 *.log
+.next-production/

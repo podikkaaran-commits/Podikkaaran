@@ -90,7 +90,12 @@ export default function Checkout() {
         </div>
         <aside className="card h-fit space-y-3 p-5 lg:sticky lg:top-24">
           <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl">Order summary</h2><Link href="/cart" className="text-sm font-semibold underline">Edit cart</Link></div>
-          <ul className="divide-y divide-brown/10 text-sm">{lines.map((l) => <li key={l.slug} className="flex justify-between gap-3 py-2"><span>{l.name} ({l.weight})<br /><b>Qty {l.qty}</b><br /><span className="text-xs">{rupee(l.price)} each</span>{l.unavailable && <span className="err block">Unavailable – update cart</span>}</span><b>{rupee(l.price * l.qty)}</b></li>)}</ul>
+          <ul className="divide-y divide-brown/10 text-sm">{lines.map((l) => <li key={l.slug} className="flex justify-between gap-3 py-2"><span>{l.name} ({l.weight})<br /><b>Qty {l.qty}</b><br />{l.originalPrice > l.price ? (
+            <span className="inline-flex flex-wrap items-baseline gap-2">
+              <del className="text-xs"><span className="sr-only">Original price </span>{rupee(l.originalPrice)}</del>
+              <strong className="text-forest">Offer price {rupee(l.price)} each</strong>
+            </span>
+          ) : <span className="text-xs">{rupee(l.price)} each</span>}{l.unavailable && <span className="err block">Unavailable – update cart</span>}</span><b>{rupee(l.price * l.qty)}</b></li>)}</ul>
           <div className="flex justify-between text-sm"><span>Subtotal</span><b>{rupee(subtotal)}</b></div>
           <div className="flex justify-between text-sm"><span>Delivery charges</span><b>{delivery === null ? 'Enter pincode' : rupee(delivery)}</b></div>
           <div className="flex justify-between border-t border-brown/10 pt-3 text-lg"><span>Grand total</span><b>{delivery === null ? 'Enter pincode' : rupee(total)}</b></div>

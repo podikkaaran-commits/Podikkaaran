@@ -1,4 +1,5 @@
 'use client';
+import ProductPrice from '@/components/ProductPrice';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,7 +29,7 @@ export default function ProductBuy({ p }) {
       <div>
         <p className="text-sm">{p.tamilName}</p>
         <h1 className="text-3xl sm:text-4xl">{p.name}</h1>
-        <p className="mt-2 text-3xl font-bold">{rupee(p.price)} <span className="text-base font-normal">/ {p.weight} · inclusive of taxes</span></p>
+        <p className="mt-2 text-3xl font-bold"><ProductPrice product={p} /> <span className="text-base font-normal">/ {p.weight} · inclusive of taxes</span></p>
         <p className={`mt-1 text-sm font-semibold ${out ? 'text-red-700' : 'text-forest'}`}>{out ? 'Out of stock' : p.stock <= 10 ? `Only ${p.stock} left` : 'In stock'}</p>
         <p className="mt-3">{p.description}</p>
         <div className="mt-5 flex flex-wrap items-center gap-4">

@@ -12,7 +12,7 @@ export async function GET(req) {
   if (!isAdmin()) return new Response('Unauthorized', { status: 401 });
   const sp = new URL(req.url).searchParams;
   const status = sp.get('status'), from = sp.get('from'), to = sp.get('to');
-  let orders = getOrders();
+  let orders = await getOrders();
   if (status && status !== 'All') orders = orders.filter((o) => o.status === status);
   if (from) orders = orders.filter((o) => o.createdAt.slice(0, 10) >= from);
   if (to) orders = orders.filter((o) => o.createdAt.slice(0, 10) <= to);

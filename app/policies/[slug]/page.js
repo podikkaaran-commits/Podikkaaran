@@ -4,10 +4,10 @@ import { getSettings } from '@/lib/db';
 import { fullAddress } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 const T = { 'shipping-policy': 'Shipping Policy', 'return-refund-policy': 'Return & Refund Policy', 'privacy-policy': 'Privacy Policy', 'terms-and-conditions': 'Terms & Conditions' };
-export function generateMetadata({ params }) { return T[params.slug] ? { title: T[params.slug], alternates: { canonical: `/policies/${params.slug}` } } : {}; }
-export default function Policy({ params }) {
+export async function generateMetadata({ params }) { return T[params.slug] ? { title: T[params.slug], alternates: { canonical: `/policies/${params.slug}` } } : {}; }
+export default async function Policy({ params }) {
   const t = T[params.slug]; if (!t) notFound();
-  const s = getSettings();
+  const s = await getSettings();
   const body = {
     'shipping-policy': [`We deliver across India. Estimated delivery: ${s.deliveryTime}.`, `Delivery charges: ₹${s.deliveryChennai} within Chennai, ₹${s.deliveryTN} for the rest of Tamil Nadu, ₹${s.deliveryOther} for other states. The charge is applied once per order and is shown before you pay. There are no hidden charges.`, 'Delivery charges are calculated automatically from your delivery state and pincode.'],
     'return-refund-policy': ['Please write your own return and refund rules here, for example how to report a damaged or wrong item and how refunds are processed for online payments.', 'Edit this text in app/policies/[slug]/page.js.'],
