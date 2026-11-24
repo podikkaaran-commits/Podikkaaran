@@ -34,7 +34,7 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={faqSchema(s)} />
-      <section className="overflow-hidden bg-white">
+      <section className="overflow-hidden bg-gradient-to-br from-[#fff9eb] via-[#f9f3df] to-[#e1ecd6]">
         <div className="wrap grid items-center gap-8 py-12 md:grid-cols-2 md:py-20">
           <div>
             <p className="font-semibold">{SITE.tagline} · {SITE.tagline2}</p>
@@ -44,7 +44,7 @@ export default async function Home() {
             <p className="mt-5 text-sm font-semibold">🚚 Delivery Available Across India · {s.deliveryTime}{s.codEnabled && ' · COD available'}</p>
             <p className="text-sm">{products[0] && <><ProductPrice product={products[0]} /> per {products[0].weight} pack</>} · Delivery {rupee(s.deliveryChennai)} Chennai / {rupee(s.deliveryTN)} Tamil Nadu / {rupee(s.deliveryOther)} other states</p>
           </div>
-          <div className="relative mx-auto flex h-[340px] w-full max-w-md items-end justify-center sm:h-[420px]" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
+          <div className="relative mx-auto flex h-[260px] w-full max-w-md items-center justify-center mix-blend-multiply sm:h-[370px]" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
             {HERO_PRODUCTS.map(([src, alt, position]) => (
               <div key={src.src} className={`relative h-[270px] w-[34%] sm:h-[340px] ${position}`}>
                 <Image src={src} alt={alt} fill priority unoptimized sizes="180px" className="object-contain" />
