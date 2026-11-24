@@ -32,7 +32,7 @@ export default async function Home() {
       <JsonLd data={faqSchema(s)} />
       <section className="relative overflow-hidden bg-gradient-to-br from-[#fff8e8] via-[#f6e8c7] to-[#dae8ba]">
         {LEAVES.map(([l, t, r, d], i) => <span key={i} aria-hidden="true" className="leaf pointer-events-none absolute text-4xl opacity-60" style={{ left: l, top: t, '--r': r, '--d': d }}>🌿</span>)}
-        <div className="wrap grid items-center gap-8 py-12 md:grid-cols-2 md:py-20">
+        <div className="wrap grid items-center gap-5 py-8 sm:gap-8 sm:py-12 md:grid-cols-2 md:py-20">
           <div>
             <p className="font-semibold">{SITE.tagline} · {SITE.tagline2}</p>
             <h1 className="mt-3 text-5xl leading-[1.02] tracking-tight sm:text-6xl">Homemade podi.<br />Ready for hot rice.</h1>
@@ -41,9 +41,9 @@ export default async function Home() {
             <p className="mt-5 text-sm font-semibold">🚚 Delivery Available Across India · {s.deliveryTime}{s.codEnabled && ' · COD available'}</p>
             <p className="text-sm">{products[0] && <><ProductPrice product={products[0]} /> per {products[0].weight} pack</>} · Delivery {rupee(s.deliveryChennai)} Chennai / {rupee(s.deliveryTN)} Tamil Nadu / {rupee(s.deliveryOther)} other states</p>
           </div>
-          <div className="relative mx-auto flex h-[340px] w-full max-w-md items-end justify-center sm:h-[420px]" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
+          <div className="relative mx-auto flex h-[260px] w-full max-w-md items-center justify-center sm:h-[420px] sm:items-end" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
             {[[curryHero, 'Curry Leaf Podi pouch', '-rotate-6 translate-x-6 z-10', '.1s'], [moringaHero, 'Moringa Podi pouch', 'z-20 scale-110', '.35s'], [paruppuHero, 'Paruppu Podi pouch', 'rotate-6 -translate-x-6 z-10', '.6s']].map(([src, alt, cls, d]) => (
-              <div key={src.src} className={`pouch relative h-[270px] w-[34%] sm:h-[340px] ${cls}`} style={{ '--d': d }}><Image src={src} alt={alt} fill priority unoptimized sizes="180px" className="object-contain mix-blend-multiply drop-shadow-xl" /></div>
+              <div key={src.src} className={`pouch relative h-[230px] w-[34%] sm:h-[340px] ${cls}`} style={{ '--d': d }}><Image src={src} alt={alt} fill priority unoptimized sizes="180px" className="object-contain mix-blend-multiply drop-shadow-xl" /></div>
             ))}
           </div>
         </div>
