@@ -65,8 +65,8 @@ export default function Checkout() {
     <div className="wrap py-8">
       {pay === 'razorpay' && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}
       <h1 className="mb-5 text-3xl sm:text-4xl">Checkout</h1>
-      <form onSubmit={submit} noValidate className="grid gap-8 lg:grid-cols-[1fr_390px]">
-        <div className="space-y-6">
+      <form onSubmit={submit} noValidate className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="min-w-0 space-y-6">
           <section className="card p-5"><h2 className="mb-4 text-xl">Delivery details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {F.map(([k, l, ac, t]) => (

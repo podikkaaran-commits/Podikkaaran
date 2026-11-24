@@ -8,7 +8,12 @@ export async function POST(req) {
   const { password } = await req.json().catch(() => ({}));
   if (!checkPassword(password)) return NextResponse.json({ error: 'Wrong password' }, { status: 401 });
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(COOKIE_NAME, makeToken(), { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 43200 });
+  const localPreview = /^http:\/\/localhost(?::\d+)?\/?$/.test(process.env.NEXT_PUBLIC_SITE_URL || '')
+    && new URL(req.url).hostname === 'localhost';
+  res.cookies.set(COOKIE_NAME, makeToken(), {
+    httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production' && !localPreview,
+    path: '/', maxAge: 43200,
+  });
   return res;
 }
 export async function DELETE() {

@@ -1,11 +1,11 @@
 'use client';
-import Image from 'next/image';
+import Image from '@/components/StoreImage';
 import Link from 'next/link';
 import { useCart } from '@/components/CartProvider';
 import { rupee } from '@/lib/site';
 
 export function QtyStepper({ qty, onChange, max = 50, small }) {
-  const b = `grid place-items-center rounded-full border border-forest/40 text-forest hover:bg-cream disabled:opacity-40 ${small ? 'h-7 w-7' : 'h-9 w-9'}`;
+  const b = `grid place-items-center rounded-full border border-forest/40 text-forest hover:bg-cream disabled:opacity-40 ${small ? 'h-10 w-10' : 'h-11 w-11'}`;
   return (
     <div className="inline-flex items-center gap-2" role="group" aria-label="Quantity">
       <button type="button" className={b} onClick={() => onChange(qty - 1)} aria-label="Decrease quantity">−</button>
@@ -27,7 +27,7 @@ export default function CartLines({ compact }) {
             <p className="font-display font-semibold text-forest">{l.name}</p>
             <p className="text-xs">{l.weight} · {rupee(l.price)}</p>
             {l.unavailable && <p className="err">{l.stock <= 0 ? 'Out of stock – remove to continue' : `Only ${l.stock} left – reduce quantity`}</p>}
-            <div className="mt-2 flex items-center justify-between">
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <QtyStepper small={compact} qty={l.qty} max={Math.max(l.stock, 1)} onChange={(q) => setQty(l.slug, q)} />
               <span className="font-semibold">{rupee(l.price * l.qty)}</span>
             </div>

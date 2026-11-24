@@ -12,7 +12,8 @@ function validPrices(price, original) {
 }
 export async function GET() {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  return NextResponse.json({ orders: await getOrders(), products: await getProducts(), settings: await getSettings() });
+  const [orders, products, settings] = await Promise.all([getOrders(), getProducts(), getSettings()]);
+  return NextResponse.json({ orders, products, settings });
 }
 export async function PATCH(req) {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

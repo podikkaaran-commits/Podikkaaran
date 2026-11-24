@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/StoreImage';
 import { SITE, fullAddress } from '@/lib/site';
 
 export default function Footer({ whatsapp }) {

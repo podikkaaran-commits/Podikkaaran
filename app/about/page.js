@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import Image from '@/components/StoreImage';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 export const metadata = { title: 'About PODIKKAARAN – Traditional Homemade Podi', description: 'The story of PODIKKAARAN: traditional South Indian homemade podi with Amma Samayal taste, made in Nerkundram, Chennai.', alternates: { canonical: '/about' } };

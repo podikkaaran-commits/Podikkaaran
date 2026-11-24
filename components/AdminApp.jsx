@@ -30,7 +30,7 @@ export default function AdminApp() {
   );
   return (
     <div className="wrap py-8">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl">Admin dashboard</h1><div className="flex gap-2">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl">Admin dashboard</h1><div className="flex flex-wrap gap-2">
         {['orders', 'products', 'settings'].map((t) => <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-outline'}>{t[0].toUpperCase() + t.slice(1)}</button>)}
         <button onClick={logout} className="btn-outline">Log out</button></div></div>
       {flash && <p className="fixed right-4 top-20 z-50 rounded-lg bg-forest px-4 py-2 text-cream shadow-lg" role="status">{flash}</p>}
@@ -77,13 +77,30 @@ function Products({ products, reload, note }) {
   const up = (slug, k, v) => setRows(rows.map((r) => (r.slug === slug ? { ...r, [k]: v } : r)));
   const save = async () => { const r = await api({ kind: 'products', products: rows }); if (r.ok) { note('Products saved'); reload(); } else note((await r.json()).error || 'Could not save prices'); };
   return (<div className="space-y-6">
-    <div className="card overflow-x-auto p-4"><h2 className="mb-3 text-xl">Existing products</h2><table className="w-full text-sm"><thead><tr className="text-left"><th>Product</th><th>Original price (₹)</th><th>Selling price (₹)</th><th>Stock</th><th>Active</th></tr></thead><tbody>
-      {rows.map((p) => <tr key={p.slug} className="border-t border-brown/10"><td className="py-2">{p.name} ({p.weight})</td>
-        <td><input aria-label="Original price" className="input !w-24" type="number" min="0" value={p.originalPrice ?? ''} onChange={(e) => up(p.slug, 'originalPrice', e.target.value)} /></td>
-        <td><input aria-label="Selling price" className="input !w-24" type="number" min="1" value={p.price} onChange={(e) => up(p.slug, 'price', e.target.value)} /></td>
-        <td><input className="input !w-24" type="number" min="0" value={p.stock} onChange={(e) => up(p.slug, 'stock', e.target.value)} /></td>
-        <td><input type="checkbox" checked={p.active} onChange={(e) => up(p.slug, 'active', e.target.checked)} aria-label={`${p.name} active`} /></td></tr>)}</tbody></table>
-      <button onClick={save} className="btn-primary mt-4">Save changes</button></div>
+    <section className="card p-4">
+      <h2 className="mb-3 text-xl">Existing products</h2>
+      <div className="divide-y divide-brown/10">
+        {rows.map(p => (
+          <div key={p.slug} className="grid grid-cols-2 items-end gap-3 py-4 md:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto]">
+            <h3 className="col-span-2 self-center font-semibold md:col-span-1">{p.name} <span className="text-xs">({p.weight})</span></h3>
+            {[
+              ['originalPrice', 'Original price (₹)', 0],
+              ['price', 'Selling price (₹)', 1],
+              ['stock', 'Stock', 0],
+            ].map(([key, label, min]) => (
+              <label key={key} className="min-w-0">
+                <span className="label">{label}</span>
+                <input aria-label={p.name + ' ' + label} className="input" type="number" min={min} value={p[key] ?? ''} onChange={e => up(p.slug, key, e.target.value)} />
+              </label>
+            ))}
+            <label className="flex min-h-11 items-center gap-2">
+              <input type="checkbox" checked={p.active} onChange={e => up(p.slug, 'active', e.target.checked)} aria-label={p.name + ' active'} /> Active
+            </label>
+          </div>
+        ))}
+      </div>
+      <button onClick={save} className="btn-primary mt-3">Save changes</button>
+    </section>
     <AddProduct reload={reload} note={note} />
   </div>);
 }
@@ -121,7 +138,7 @@ function AddProduct({ reload, note }) {
         {T('storage', 'Storage instructions (blank = default)', { wide: true })}
       </div>
       <div><label className="label" htmlFor="imgs">Product images * (first image = main pouch photo; JPG/PNG/WEBP, max 5MB each)</label>
-        <input id="imgs" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={upload} className="text-sm" />
+        <input id="imgs" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={upload} className="max-w-full text-sm" />
         <div className="mt-2 flex flex-wrap gap-2">{f.images.map((u) => <div key={u} className="relative"><img src={u} alt="" className="h-20 w-16 rounded-lg object-cover ring-1 ring-brown/20" /><button type="button" aria-label="Remove image" onClick={() => setF({ ...f, images: f.images.filter((x) => x !== u) })} className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-red-700 text-xs text-white">×</button></div>)}</div></div>
       <p className="text-xs">Only enter ingredients and claims that are true for this product.</p>
       {err && <p className="err" role="alert">{err}</p>}

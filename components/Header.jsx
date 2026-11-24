@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/StoreImage';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartProvider';

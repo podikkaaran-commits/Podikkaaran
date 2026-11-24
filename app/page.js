@@ -1,6 +1,7 @@
 import ProductPrice from '@/components/ProductPrice';
 import Link from 'next/link';
 import Image from 'next/image';
+import StoreImage from '@/components/StoreImage';
 import curryHero from '../public/images/curry-hero.webp';
 import moringaHero from '../public/images/moringa-hero.webp';
 import paruppuHero from '../public/images/paruppu-hero.webp';
@@ -49,7 +50,7 @@ export default async function Home() {
         <div className="mt-6 grid gap-5 sm:grid-cols-3">
           {products.map((p, i) => (
             <Reveal key={p.slug} delay={i * 80}><Link href={`/products/${p.slug}`} className="card lift group block overflow-hidden">
-              <div className="relative aspect-[4/3]"><Image src={p.images[1] || p.images[0]} alt={`${p.name} in a bowl`} fill sizes="(max-width:640px) 100vw,360px" className="object-cover transition duration-500 group-hover:scale-105" /></div>
+              <div className="relative aspect-[4/3]"><StoreImage src={p.images[1] || p.images[0]} alt={`${p.name} in a bowl`} fill sizes="(max-width:640px) 100vw,360px" className="object-cover transition duration-500 group-hover:scale-105" /></div>
               <div className="p-4"><h3 className="text-xl">{p.name}</h3><p className="text-sm">{p.short}</p><span className="btn-outline mt-3">Explore</span></div>
             </Link></Reveal>
           ))}
@@ -63,7 +64,7 @@ export default async function Home() {
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           {products.map((p, i) => (
             <Reveal key={p.slug} delay={i * 80} className="overflow-hidden rounded-2xl bg-white text-brown">
-              <div className="relative aspect-[4/3]"><Image src={p.images[2] || p.images[1]} alt={`${p.name} served with rice and ghee`} fill sizes="(max-width:768px) 100vw,380px" className="object-cover" /></div>
+              <div className="relative aspect-[4/3]"><StoreImage src={p.images[2] || p.images[1] || p.images[0]} alt={`${p.name} served with rice and ghee`} fill sizes="(max-width:768px) 100vw,380px" className="object-cover" /></div>
               <div className="p-5"><h3 className="text-xl">{p.name}</h3><p className="text-lg font-bold"><ProductPrice product={p} /> <span className="text-sm font-normal">/ {p.weight}</span></p><p className="mt-1 text-sm">{p.short}</p><Link href={`/products/${p.slug}`} className="btn-primary mt-3">Shop Now</Link></div>
             </Reveal>))}
         </div>
@@ -71,7 +72,7 @@ export default async function Home() {
       </div></section>
 
       <section className="wrap grid items-center gap-8 py-14 md:grid-cols-2">
-        <Reveal className="relative aspect-[4/3] overflow-hidden rounded-2xl"><Image src="/images/paruppu-serving.jpg" alt="Paruppu podi with hot rice and ghee on a banana leaf" fill sizes="(max-width:768px) 100vw,540px" className="object-cover" /></Reveal>
+        <Reveal className="relative aspect-[4/3] overflow-hidden rounded-2xl"><StoreImage src="/images/paruppu-serving.jpg" alt="Paruppu podi with hot rice and ghee on a banana leaf" fill sizes="(max-width:768px) 100vw,540px" className="object-cover" /></Reveal>
         <Reveal><h2 className="text-3xl">A Little Taste of Home in Every Spoon</h2>
           <p className="mt-3">PODIKKAARAN brings traditional South Indian homemade flavours to your everyday cooking. Our podis are made with carefully selected ingredients and are ready to mix with hot rice and ghee, or serve with idli, dosa and chapati.</p>
           <Link href="/about" className="btn-outline mt-4">Our story</Link></Reveal>

@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useCart } from '@/components/CartProvider';
 import CartLines from '@/components/CartLines';
 import { rupee } from '@/lib/site';
 
 export default function CartDrawer() {
   const { open, setOpen, count, subtotal, blocked, settings } = useCart();
+  const pathname = usePathname();
   useEffect(() => {
     if (!open) return;
     const k = (e) => e.key === 'Escape' && setOpen(false);
@@ -33,8 +35,8 @@ export default function CartDrawer() {
           </aside>
         </div>
       )}
-      {count > 0 && !open && (
-        <Link href="/cart" className="fixed inset-x-3 bottom-3 z-30 flex items-center justify-between rounded-full bg-forest px-5 py-3 text-cream shadow-xl md:hidden" aria-label="View cart">
+      {count > 0 && !open && !['/cart', '/checkout', '/order', '/admin'].includes(pathname) && (
+        <Link href="/cart" className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 flex items-center justify-between rounded-full bg-forest px-5 py-3 text-cream shadow-xl md:hidden" aria-label="View cart">
           <span className="text-sm font-semibold">🛒 {count} item{count > 1 ? 's' : ''}</span><span className="font-bold">{rupee(subtotal)}</span>
         </Link>
       )}
