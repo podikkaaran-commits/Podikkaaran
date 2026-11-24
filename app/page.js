@@ -16,6 +16,11 @@ import JsonLd from '@/components/JsonLd';
 export const dynamic = 'force-dynamic';
 export const metadata = { alternates: { canonical: '/' } };
 
+const REVIEWS = [
+  { name: 'Prasanna .p', rating: 5, text: 'Good product very tasty 🤤😋' },
+  { name: 'kamesh mhs', rating: 5, text: 'I ALREADY PURCHASED THREE PRODUVTS AND ITS VERY FANTASTIC' },
+];
+
 const WHY = [['🏡', 'Homemade Taste', 'Small-batch podi made the way it is made at home.'], ['🌿', 'Carefully Selected Ingredients', 'Curry leaves, moringa leaves, dals and spices – listed in full on every pack.'], ['🚫', 'No Added Preservatives', 'As stated on our packaging.'], ['🎨', 'No Added Colours', 'As stated on our packaging.']];
 const LEAVES = [['4%', '8%', '-20deg', '0s'], ['90%', '14%', '30deg', '1.2s'], ['8%', '70%', '15deg', '2s'], ['86%', '76%', '-35deg', '.6s']];
 
@@ -78,8 +83,23 @@ export default async function Home() {
           <Link href="/about" className="btn-outline mt-4">Our story</Link></Reveal>
       </section>
 
-      <section className="bg-cream py-14"><div className="wrap"><Reveal><h2 className="text-3xl">Customer Reviews</h2></Reveal>
-        <div className="mt-6 grid gap-5 md:grid-cols-3">{[1, 2, 3].map((n) => <div key={n} className="card border-2 border-dashed border-brown/30 p-5 text-sm"><p className="mb-2 inline-block rounded bg-turmeric/30 px-2 py-0.5 text-xs font-bold">PLACEHOLDER – not a real review</p><p>Your customer&apos;s review will appear here. Add real reviews in <code>data/reviews.json</code> once you collect them.</p></div>)}</div></div></section>
+      <section className="bg-cream py-14">
+        <div className="wrap">
+          <h2 className="text-3xl">Customer Reviews</h2>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            {REVIEWS.map(({ name, rating, text }) => (
+              <figure key={name} className="card p-5 sm:p-6">
+                <p className="text-xl tracking-wide text-[#916009]">
+                  <span aria-hidden="true">{'★'.repeat(rating)}</span>
+                  <span className="sr-only">{rating} out of 5 stars</span>
+                </p>
+                <blockquote className="mt-3"><p>{text}</p></blockquote>
+                <figcaption className="mt-4 text-sm font-semibold text-forest">{name}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="wrap py-14"><Reveal><h2 className="text-3xl">Frequently Asked Questions</h2></Reveal>
         <div className="mt-5 divide-y divide-brown/10 rounded-2xl bg-white ring-1 ring-brown/10">{faq.map(([q, a]) => <details key={q} className="group p-4"><summary className="cursor-pointer font-semibold text-forest">{q}</summary><p className="mt-2 text-sm">{a}</p></details>)}</div></section>
