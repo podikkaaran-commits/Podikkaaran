@@ -40,6 +40,10 @@ export default function Checkout() {
     e.preventDefault(); setMsg('');
     const v = validate(); setErrs(v); if (Object.keys(v).length) { document.getElementById('f-' + Object.keys(v)[0])?.focus(); return; }
     if (busy || blocked || !lines.length || !pay) return;
+    if (pay === 'razorpay' && typeof window.Razorpay !== 'function') {
+      setMsg('Payment checkout is loading. Please try again in a moment.');
+      return;
+    }
     setBusy(true); trackPay(pay);
     try {
       const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: f, items: lines.map((l) => ({ slug: l.slug, qty: l.qty })), paymentMethod: pay }) });
@@ -50,8 +54,15 @@ export default function Checkout() {
         key: j.razorpay.keyId, amount: j.razorpay.amount, currency: 'INR', order_id: j.razorpay.orderId, name: 'PODIKKAARAN', description: `Order ${j.orderId}`,
         prefill: { name: f.name, contact: f.mobile },
         handler: async (resp) => {
-          const v = await fetch('/api/payments/razorpay/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...resp, orderId: j.orderId }) });
-          if (v.ok) done(j.orderId, j.mobile); else { setMsg('We could not verify your payment. If money was deducted, contact us with order ID ' + j.orderId); setBusy(false); }
+          const request = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...resp, orderId: j.orderId }) };
+          for (let attempt = 0; attempt < 4; attempt += 1) {
+            const verification = await fetch('/api/payments/razorpay/verify', request).catch(() => null);
+            if (verification?.ok) return done(j.orderId, j.mobile);
+            if (verification && verification.status !== 409) break;
+            if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+          setMsg('Payment confirmation is unavailable. If money was deducted, contact us with order ID ' + j.orderId);
+          setBusy(false);
         },
         modal: { ondismiss: () => { setMsg('Payment was not completed, so your order is not confirmed.'); setBusy(false); } },
       });
@@ -63,7 +74,7 @@ export default function Checkout() {
   if (!lines.length) return <div className="wrap py-16 text-center"><h1 className="text-3xl">Your cart is empty</h1><Link href="/shop" className="btn-primary mt-5">Shop podi</Link></div>;
   return (
     <div className="wrap py-8">
-      {pay === 'razorpay' && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}
+      {pay === 'razorpay' && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />}
       <h1 className="mb-5 text-3xl sm:text-4xl">Checkout</h1>
       <form onSubmit={submit} noValidate className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <div className="min-w-0 space-y-6">
