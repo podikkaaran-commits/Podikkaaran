@@ -6,7 +6,7 @@ import curryHero from '../public/images/curry-hero.webp';
 import moringaHero from '../public/images/moringa-hero.webp';
 import paruppuHero from '../public/images/paruppu-hero.webp';
 import { getProducts, getSettings } from '@/lib/storefront';
-import { rupee, SITE, fullAddress, mapsLink } from '@/lib/site';
+import { rupee, SITE } from '@/lib/site';
 import { FAQ, faqSchema } from '@/lib/schema';
 import { POSTS } from '@/lib/blog';
 import ProductGrid from '@/components/ProductGrid';
@@ -113,7 +113,6 @@ export default async function Home() {
       <section className="wrap pb-6"><Reveal><h2 className="text-3xl">From the Blog</h2></Reveal>
         <div className="mt-5 grid gap-4 md:grid-cols-3">{POSTS.slice(0, 3).map((p) => <Link key={p.slug} href={`/blog/${p.slug}`} className="card lift p-5"><h3 className="text-lg">{p.title}</h3><p className="mt-1 text-sm">{p.description}</p></Link>)}</div></section>
 
-      <section className="wrap py-10"><div className="card flex flex-wrap items-center justify-between gap-4 p-6"><div><h2 className="text-xl">Find us in Nerkundram, Chennai</h2><p className="text-sm">{fullAddress()}</p></div><a href={mapsLink} target="_blank" rel="noopener noreferrer" className="btn-primary">View on Google Maps</a></div></section>
     </>
   );
 }
