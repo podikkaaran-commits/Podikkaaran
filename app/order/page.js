@@ -31,10 +31,11 @@ function Order() {
       {o && <div className="card space-y-3 p-5">
         <div className="flex flex-wrap justify-between gap-2"><span>Order <b>{o.id}</b></span><span className="rounded-full bg-turmeric/40 px-3 py-0.5 text-sm font-bold">{o.status}</span></div>
         <p className="text-sm">Payment: {o.payment.method === 'cod' ? 'Cash on Delivery' : o.payment.status === 'paid' ? 'Paid online' : 'Awaiting payment'} · Delivering to {o.city}</p>
-        <ul className="divide-y divide-brown/10 text-sm">{o.items.map((i) => <li key={i.slug} className="flex justify-between py-2"><span>{i.name} ({i.weight}) × {i.qty}</span><b>{rupee(i.price * i.qty)}</b></li>)}</ul>
+        <ul className="divide-y divide-brown/10 text-sm">{o.items.map((i, index) => <li key={i.slug + index} className="flex justify-between py-2"><span>{i.name} ({i.weight}) × {i.qty}{i.contents && <small className="block">{i.contents.map(p => p.name + ' ×' + p.qty).join(' · ')}</small>}</span><b>{rupee(i.price * i.qty)}</b></li>)}</ul>
         <div className="flex justify-between text-sm"><span>Subtotal</span><span>{rupee(o.subtotal)}</span></div>
         <div className="flex justify-between text-sm"><span>Delivery charges</span><span>{rupee(o.deliveryCharge)}</span></div>
         <div className="flex justify-between border-t border-brown/10 pt-2 text-lg font-bold"><span>Total</span><span>{rupee(o.total)}</span></div>
+        {o.tracking && <a className="underline" href={o.tracking} target="_blank" rel="noreferrer">Track delivery</a>}
         <p className="text-xs">Estimated delivery: 3–5 business days.</p><Link href="/shop" className="btn-outline">Continue shopping</Link></div>}
     </div>
   );

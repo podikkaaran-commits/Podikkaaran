@@ -24,7 +24,7 @@ export const viewport = { themeColor: '#174D2B' };
 export default async function RootLayout({ children }) {
   const [catalogue, rawSettings] = await Promise.all([getProducts(), getSettings()]);
   const settings = publicSettings(rawSettings);
-  const products = catalogue.filter((p) => p.active).map(({ slug, name, price, originalPrice, weight, stock, images }) => ({ slug, name, price, originalPrice, weight, stock, images }));
+  const products = catalogue.filter((p) => p.active).map(({ slug, name, price, originalPrice, weight, stock, images, comboEligibility, comboSlugs }) => ({ slug, name, price, originalPrice, weight, stock, images, comboEligibility, comboSlugs }));
   return (
     <html lang="en-IN">
       <head>

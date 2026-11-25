@@ -1,6 +1,9 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { rupee } from '@/lib/site';
+import { configuredCombos, orderLines } from '@/lib/combos';
+import AdminCombos, { ProductEligibility } from '@/components/AdminCombos';
+import { BusinessCosts, ComboAnalytics, Fulfilment } from '@/components/AdminBusiness';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const api = (body) => fetch('/api/admin/data', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -31,12 +34,14 @@ export default function AdminApp() {
   return (
     <div className="wrap py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl">Admin dashboard</h1><div className="flex flex-wrap gap-2">
-        {['orders', 'products', 'settings'].map((t) => <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-outline'}>{t[0].toUpperCase() + t.slice(1)}</button>)}
+        {['orders', 'products', 'Combo Offers', 'Combo Analytics', 'settings'].map((t) => <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-outline'}>{t[0].toUpperCase() + t.slice(1)}</button>)}
         <button onClick={logout} className="btn-outline">Log out</button></div></div>
       {flash && <p className="fixed right-4 top-20 z-50 rounded-lg bg-forest px-4 py-2 text-cream shadow-lg" role="status">{flash}</p>}
       {tab === 'orders' && <Orders orders={data.orders} reload={load} note={note} />}
-      {tab === 'products' && <Products products={data.products} reload={load} note={note} />}
-      {tab === 'settings' && <Settings settings={data.settings} reload={load} note={note} />}
+      {tab === 'products' && <Products products={data.products} settings={data.settings} reload={load} note={note} />}
+      {tab === 'Combo Offers' && <AdminCombos settings={data.settings} products={data.products} api={api} reload={load} note={note} />}
+      {tab === 'Combo Analytics' && <ComboAnalytics orders={data.orders} />}
+      {tab === 'settings' && <div className="space-y-4"><Settings settings={data.settings} reload={load} note={note} /><BusinessCosts business={data.settings.business} api={api} reload={load} note={note} /></div>}
     </div>
   );
 }
@@ -44,7 +49,7 @@ export default function AdminApp() {
 function Orders({ orders, reload, note }) {
   const [filter, setFilter] = useState('All'), [rng, setRng] = useState({ from: '', to: '' });
   const list = orders.filter((o) => filter === 'All' || o.status === filter);
-  const change = async (id, status) => { const r = await api({ kind: 'order', id, status }); if (r.ok) { note('Status updated'); reload(); } };
+  const change = async (id, status) => { const r = await api({ kind: 'order', id, status }); if (r.ok) { note('Status updated'); reload(); } else note((await r.json()).error || 'Could not update order'); };
   return (<div>
     <div className="mb-3 flex flex-wrap gap-2 text-sm">{['All', ...STATUSES].map((s) => <button key={s} onClick={() => setFilter(s)} className={`rounded-full px-3 py-1 ${filter === s ? 'bg-forest text-cream' : 'bg-cream'}`}>{s}</button>)}</div>
     <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl bg-cream p-3 text-sm">
@@ -62,20 +67,29 @@ function Orders({ orders, reload, note }) {
           <div><b>Customer</b><br />{o.customer.name}<br />{o.customer.mobile}</div>
           <div><b>Delivery address</b><br />{o.customer.house}, {o.customer.street}<br />{o.customer.area}, {o.customer.city}<br />{o.customer.state}<br /><b>Pincode {o.customer.pincode}</b></div>
           <div><b>Products ordered</b>
-            <ul className="my-1 divide-y divide-brown/10">{o.items.map((i) => (
-              <li key={i.slug} className="flex flex-wrap justify-between gap-x-2 py-1">
-                <span>{i.name} ({i.weight})</span>
+            <ul className="my-1 divide-y divide-brown/10">{orderLines(o).map((i, index) => (
+              <li key={i.slug + index} className="flex flex-wrap justify-between gap-x-2 py-1">
+                <span>{i.name} ({i.weight}){i.contents && <small className="block">{i.contents.map(p => p.name + ' ×' + p.qty).join(' · ')} · Save {rupee(i.savings)} per combo</small>}</span>
                 <span><b>Qty {i.qty}</b> · {rupee(i.price * i.qty)}</span>
               </li>
             ))}</ul>
-            <div>Delivery: {rupee(o.deliveryCharge)}</div><div className="font-bold">Total: {rupee(o.total)}</div></div></div>
+            <div>Product revenue: {rupee(o.subtotal)}</div><div>Delivery: {rupee(o.deliveryCharge)}</div><div className="font-bold">Total: {rupee(o.total)}</div></div></div>
+        <Fulfilment order={o} api={api} note={note} reload={reload} />
       </article>))}</div></div>);
 }
 
-function Products({ products, reload, note }) {
-  const [rows, setRows] = useState(products);
-  const up = (slug, k, v) => setRows(rows.map((r) => (r.slug === slug ? { ...r, [k]: v } : r)));
-  const save = async () => { const r = await api({ kind: 'products', products: rows }); if (r.ok) { note('Products saved'); reload(); } else note((await r.json()).error || 'Could not save prices'); };
+function Products({ products, settings, reload, note }) {
+  const [drafts, setDrafts] = useState({});
+  const combos = configuredCombos(settings);
+  const rows = products.map(p => ({ ...p, manufacturingCost: settings.business?.productCosts?.[p.slug], ...drafts[p.slug] }));
+  const up = (slug, key, value) => setDrafts(current => ({ ...current, [slug]: {
+    ...current[slug], [key]: value,
+    ...(key === 'comboSlugs' && { comboEligibility: 'selected' }),
+  } }));
+  const save = async () => {
+    const r = await api({ kind: 'products', products: Object.entries(drafts).map(([slug, patch]) => ({ slug, ...patch })) });
+    if (r.ok) { await reload(); setDrafts({}); note('Products saved'); } else note((await r.json()).error || 'Could not save products');
+  };
   return (<div className="space-y-6">
     <section className="card p-4">
       <h2 className="mb-3 text-xl">Existing products</h2>
@@ -96,17 +110,20 @@ function Products({ products, reload, note }) {
             <label className="flex min-h-11 items-center gap-2">
               <input type="checkbox" checked={p.active} onChange={e => up(p.slug, 'active', e.target.checked)} aria-label={p.name + ' active'} /> Active
             </label>
+            <label><span className="label">Manufacturing cost per pack (₹)</span><input className="input" type="number" min="0" step="0.01"
+              aria-label={p.name + ' manufacturing cost'} value={p.manufacturingCost ?? ''} onChange={e => up(p.slug, 'manufacturingCost', e.target.value)} /></label>
+            <div className="col-span-2 md:col-span-4"><ProductEligibility product={p} combos={combos} update={(key, value) => up(p.slug, key, value)} /></div>
           </div>
         ))}
       </div>
       <button onClick={save} className="btn-primary mt-3">Save changes</button>
     </section>
-    <AddProduct reload={reload} note={note} />
+    <AddProduct combos={combos} reload={reload} note={note} />
   </div>);
 }
 
 const EMPTY = { name: '', tamilName: '', originalPrice: '', price: '', weight: '100g', stock: '', badge: '', short: '', description: '', ingredients: '', usage: '', storage: '', images: [] };
-function AddProduct({ reload, note }) {
+function AddProduct({ combos, reload, note }) {
   const [f, setF] = useState(EMPTY), [err, setErr] = useState(''), [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   async function upload(e) {
@@ -124,7 +141,7 @@ function AddProduct({ reload, note }) {
     if (!r.ok) return setErr(j.error);
     note('Product added: /products/' + j.slug); setF(EMPTY); reload();
   }
-  const T = (k, l, extra = {}) => <div className={extra.wide ? 'sm:col-span-2' : ''}><label className="label" htmlFor={'n-' + k}>{l}</label>{extra.area ? <textarea id={'n-' + k} rows={3} className="input" value={f[k]} onChange={set(k)} /> : <input id={'n-' + k} type={extra.type || 'text'} className="input" value={f[k]} onChange={set(k)} />}</div>;
+  const T = (k, l, extra = {}) => <div className={extra.wide ? 'sm:col-span-2' : ''}><label className="label" htmlFor={'n-' + k}>{l}</label>{extra.area ? <textarea id={'n-' + k} rows={3} className="input" value={f[k]} onChange={set(k)} /> : <input id={'n-' + k} type={extra.type || 'text'} className="input" value={f[k] ?? ''} step={k === 'manufacturingCost' ? '0.01' : undefined} onChange={set(k)} />}</div>;
   return (
     <form onSubmit={submit} className="card space-y-4 p-5"><h2 className="text-xl">Add new product</h2>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -136,6 +153,10 @@ function AddProduct({ reload, note }) {
         {T('ingredients', 'Ingredients (as printed on pack)', { wide: true, area: true })}
         {T('usage', 'How to use (one point per line)', { wide: true, area: true })}
         {T('storage', 'Storage instructions (blank = default)', { wide: true })}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {T('manufacturingCost', 'Manufacturing cost per pack (₹)', { type: 'number' })}
+        <ProductEligibility product={f} combos={combos} update={(key, value) => setF(current => ({ ...current, [key]: value }))} />
       </div>
       <div><label className="label" htmlFor="imgs">Product images * (first image = main pouch photo; JPG/PNG/WEBP, max 5MB each)</label>
         <input id="imgs" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={upload} className="max-w-full text-sm" />

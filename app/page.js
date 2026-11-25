@@ -13,6 +13,8 @@ import ProductGrid from '@/components/ProductGrid';
 import Reveal from '@/components/Reveal';
 import JsonLd from '@/components/JsonLd';
 
+import ComboOffers from '@/components/ComboOffers';
+
 export const dynamic = 'force-dynamic';
 export const metadata = { alternates: { canonical: '/' } };
 
@@ -50,6 +52,8 @@ export default async function Home() {
       </section>
 
       <section className="bg-cream py-14"><div className="wrap"><Reveal><h2 className="text-3xl">New Arrivals</h2></Reveal><div className="mt-6"><ProductGrid products={products} /></div></div></section>
+
+      <ComboOffers settings={s} products={products} />
 
       <section id="categories" className="wrap scroll-mt-24 py-14"><Reveal><h2 className="text-3xl">Shop by Category</h2><p className="mt-1">Three everyday podis, one for every plate.</p></Reveal>
         <div className="mt-6 grid gap-5 sm:grid-cols-3">

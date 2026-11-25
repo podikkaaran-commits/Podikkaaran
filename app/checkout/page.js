@@ -11,7 +11,7 @@ import { track, itemOf } from '@/lib/analytics';
 const F = [['name', 'Full name', 'name', 'text'], ['mobile', 'Mobile number', 'tel', 'tel'], ['house', 'House / Flat number', 'address-line1', 'text'], ['street', 'Street address', 'address-line2', 'text'], ['area', 'Area', 'address-level3', 'text'], ['city', 'City', 'address-level2', 'text'], ['pincode', 'Pincode', 'postal-code', 'text']];
 
 export default function Checkout() {
-  const { lines, subtotal, blocked, settings, clear, ready, pin } = useCart(); const router = useRouter();
+  const { lines, items, combos, subtotal, blocked, settings, clear, ready, pin } = useCart(); const router = useRouter();
   const [f, setF] = useState({ name: '', mobile: '', house: '', street: '', area: '', city: '', state: 'Tamil Nadu', pincode: '' });
   const [selectedPayment, setPay] = useState(null), [errs, setErrs] = useState({}), [busy, setBusy] = useState(false), [msg, setMsg] = useState('');
   useEffect(() => { if (pin && !f.pincode) setF((x) => ({ ...x, pincode: pin })); }, [pin]); // eslint-disable-line
@@ -21,7 +21,7 @@ export default function Checkout() {
     : selectedPayment === 'razorpay' && settings.onlinePayment ? 'razorpay'
     : settings.codEnabled ? 'cod' : settings.onlinePayment ? 'razorpay' : null;
   const zone = zoneFor(f, settings), delivery = PIN_RE.test(f.pincode) ? chargeFor(zone, settings) : null;
-  const total = subtotal + (delivery ?? 0);
+  const total = Math.round((subtotal + (delivery ?? 0)) * 100) / 100;
   const set = (k) => (e) => setF({ ...f, [k]: k === 'pincode' || k === 'mobile' ? e.target.value.replace(/\D/g, '') : e.target.value });
 
   const validate = () => {
@@ -46,7 +46,7 @@ export default function Checkout() {
     }
     setBusy(true); trackPay(pay);
     try {
-      const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: f, items: lines.map((l) => ({ slug: l.slug, qty: l.qty })), paymentMethod: pay }) });
+      const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: f, items, combos, paymentMethod: pay }) });
       const j = await r.json();
       if (!r.ok) { setErrs(j.errors || {}); setMsg(j.errors?.items || j.errors?.payment || j.error || 'Please correct the highlighted fields.'); setBusy(false); return; }
       if (j.method === 'cod') return done(j.orderId, j.mobile);
@@ -101,7 +101,7 @@ export default function Checkout() {
         </div>
         <aside className="card h-fit space-y-3 p-5 lg:sticky lg:top-24">
           <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl">Order summary</h2><Link href="/cart" className="text-sm font-semibold underline">Edit cart</Link></div>
-          <ul className="divide-y divide-brown/10 text-sm">{lines.map((l) => <li key={l.slug} className="flex justify-between gap-3 py-2"><span>{l.name} ({l.weight})<br /><b>Qty {l.qty}</b><br />{l.originalPrice > l.price ? (
+          <ul className="divide-y divide-brown/10 text-sm">{lines.map((l) => <li key={l.id} className="flex justify-between gap-3 py-2"><span>{l.name} ({l.weight})<br /><b>Qty {l.qty}</b><br />{l.contents && <span className="block text-xs">{l.contents.map(i => i.name + ' ×' + i.qty).join(' · ')}</span>}{l.originalPrice > l.price ? (
             <span className="inline-flex flex-wrap items-baseline gap-2">
               <del className="text-xs"><span className="sr-only">Original price </span>{rupee(l.originalPrice)}</del>
               <strong className="text-forest">Offer price {rupee(l.price)} each</strong>

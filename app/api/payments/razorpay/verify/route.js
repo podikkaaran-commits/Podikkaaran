@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { getOrder } from '@/lib/db';
-import { updateOrder, reserveStock, notifyAdmin } from '@/lib/orders';
+import { updateOrder, notifyAdmin } from '@/lib/orders';
 
 // Confirm both the checkout signature and payment capture.
 export async function POST(req) {
@@ -32,11 +32,20 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Payment capture is pending' }, { status: 409 });
     if (payment.status !== 'captured')
       return NextResponse.json({ error: 'Payment has not been captured' }, { status: 400 });
-    const updated = await updateOrder(o.id, (x) => {
-      x.payment.status = 'paid'; x.payment.razorpayPaymentId = b.razorpay_payment_id; x.payment.paidAt = new Date().toISOString();
-      x.status = 'Confirmed'; x.statusHistory.push({ status: 'Confirmed', at: new Date().toISOString() });
-    });
-    await reserveStock(updated.items); await notifyAdmin(updated);
+    let changed = false;
+    try {
+      const updated = await updateOrder(o.id, (x) => {
+        if (x.status === 'Cancelled') throw new Error('Order was cancelled');
+        if (x.payment.status === 'paid') return;
+        changed = true;
+        x.payment.status = 'paid'; x.payment.razorpayPaymentId = b.razorpay_payment_id; x.payment.paidAt = new Date().toISOString();
+        x.status = 'Confirmed'; x.statusHistory.push({ status: 'Confirmed', at: new Date().toISOString() });
+      });
+      if (changed) await notifyAdmin(updated);
+    } catch {
+      const current = await getOrder(o.id);
+      if (current?.payment.status !== 'paid') return NextResponse.json({ error: 'Could not confirm the order. Contact the store using your order ID.' }, { status: 409 });
+    }
   }
   return NextResponse.json({ ok: true, orderId: o.id, mobile: o.customer.mobile });
 }
