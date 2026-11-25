@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/auth';
-import { cloudStore, getOrders, getProducts, saveProducts, patchProducts, getSettings, saveSettings } from '@/lib/db';
+import { cloudStore, getOrder, getOrders, getProducts, saveProducts, patchProducts, getSettings, saveSettings } from '@/lib/db';
 import { updateOrder } from '@/lib/orders';
 import { configuredCombos, grams } from '@/lib/combos';
 import { businessSettings, eligibility, fulfilment, imagePath, optionalCost, validateCombo } from '@/lib/combo-admin';
+import { shadowfaxGet, shadowfaxMode } from '@/lib/shadowfax';
 
 export const dynamic = 'force-dynamic';
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
@@ -24,7 +25,31 @@ export async function PATCH(req) {
     try {
       if (b.kind === 'fulfilment') {
         const details = fulfilment(b.fulfilment || {});
-        const order = await updateOrder(b.id, o => { o.fulfilment = details; });
+        const current = await getOrder(b.id);
+        const pending = current?.fulfilment?.shadowfax;
+        if (pending?.state === 'pending') {
+          if (pending.expires > Date.now() || pending.mode !== shadowfaxMode() || details.courier !== 'Shadowfax' ||
+              !/^[a-z0-9-]{1,80}$/i.test(details.awb || '')) {
+            throw new Error('Retry the booking or enter the Shadowfax AWB after the booking attempt ends.');
+          }
+          const result = await shadowfaxGet('/v4/clients/orders/' + encodeURIComponent(details.awb) + '/track/');
+          const tracked = result.data?.order_details;
+          if (result.data?.message !== 'Success' || tracked?.awb_number !== details.awb || tracked?.client_order_id !== b.id) {
+            throw new Error('Shadowfax could not verify that this AWB belongs to this order.');
+          }
+        }
+        const order = await updateOrder(b.id, o => {
+          const booking = o.fulfilment?.shadowfax;
+          if (booking?.state === 'pending') {
+            if (booking.attempt !== pending?.attempt) throw new Error('The booking changed. Reload and try again.');
+            o.fulfilment = { ...o.fulfilment, ...details, shadowfax: { state: 'booked', mode: booking.mode, weightGrams: booking.weightGrams } };
+            return;
+          }
+          if (booking && (details.courier !== o.fulfilment.courier || details.awb !== o.fulfilment.awb)) {
+            throw new Error('The courier and AWB are linked to the Shadowfax booking.');
+          }
+          o.fulfilment = { ...o.fulfilment, ...details };
+        });
         return order ? NextResponse.json({ ok: true }) : NextResponse.json({ error: 'Order not found' }, { status: 404 });
       }
       const settings = await getSettings();
@@ -55,6 +80,7 @@ export async function PATCH(req) {
         if (x.status === 'Cancelled' && b.status !== 'Cancelled') throw new Error('Cancelled orders cannot be reopened.');
         if (x.payment.method !== 'cod' && x.payment.status !== 'paid' && b.status !== 'Cancelled') throw new Error('Wait for payment before updating this order.');
         if (x.status === b.status) return;
+        if (x.fulfilment?.shadowfax?.state === 'pending') throw new Error('Resolve the pending Shadowfax booking before updating the order status.');
         if (['Shipped', 'Delivered'].includes(x.status) && !['Shipped', 'Delivered', 'Cancelled'].includes(b.status))
           throw new Error('A dispatched order cannot return to an earlier status.');
         x.status = b.status;

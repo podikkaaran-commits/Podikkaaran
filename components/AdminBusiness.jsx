@@ -5,6 +5,7 @@ import { orderProfit } from '@/lib/combos';
 import { salesByPeriod, salesInRange, salesSummary } from '@/lib/combo-sales';
 import { ZONE_LABEL } from '@/lib/delivery';
 import { rupee, SITE } from '@/lib/site';
+import { checkoutCompleted } from '@/lib/order-status';
 
 const amount = value => Number.isFinite(value) ? rupee(value) : '—';
 
@@ -39,11 +40,42 @@ export function BusinessCosts({ business = {}, api, note, reload }) {
 }
 
 export function Fulfilment({ order, api, note, reload }) {
-  const [values, set] = useState(order.fulfilment || {});
+  const [values, set] = useState(() => ({
+    ...order.fulfilment,
+    ...(order.fulfilment?.shadowfax?.state === 'pending' ? { courier: 'Shadowfax' } : {}),
+  }));
   const update = key => e => set(current => ({ ...current, [key]: e.target.value }));
   const partners = ['Shadowfax', 'ATS', 'Shree Maruti', 'Other'];
   const [carrierResult, setCarrierResult] = useState(null);
   const [checking, setChecking] = useState(false);
+  const booking = order.fulfilment?.shadowfax;
+  const [weight, setWeight] = useState(booking?.weightGrams ?? order.shipmentWeight ?? '');
+  const [bookingNow, setBookingNow] = useState(false);
+  const canBook = checkoutCompleted(order) && !['Shipped', 'Delivered'].includes(order.status) && !order.fulfilment?.awb;
+  const bookingLinked = booking?.state === 'booked';
+
+  async function bookShipment(event) {
+    event.preventDefault();
+    if (!window.confirm('Book this shipment with Shadowfax? Booking sends the delivery details to Shadowfax and may incur courier charges.')) return;
+    setBookingNow(true);
+    setCarrierResult(null);
+    try {
+      const response = await fetch('/api/admin/shadowfax', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, weightGrams: Number(weight) }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Shadowfax booking failed.');
+      set(result.fulfilment);
+      setCarrierResult({ message: 'Shadowfax (' + result.mode + ') booked. AWB ' + result.fulfilment.awb });
+      await reload();
+    } catch (error) {
+      setCarrierResult({ error: error.message });
+    } finally {
+      setBookingNow(false);
+    }
+  }
 
   async function checkShadowfax(query) {
     setChecking(true);
@@ -70,16 +102,24 @@ export function Fulfilment({ order, api, note, reload }) {
       ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd className="font-semibold">{value}</dd></div>)}
     </dl>
     <form className="grid gap-2 sm:grid-cols-2" onSubmit={e => { e.preventDefault(); save(api, { kind: 'fulfilment', id: order.id, fulfilment: values }, note, reload); }}>
-      <label><span className="label">Courier partner</span><select className="input" value={values.courier || ''} onChange={update('courier')}>
+      <label><span className="label">Courier partner</span><select className="input" disabled={bookingLinked || bookingNow} value={values.courier || ''} onChange={update('courier')}>
         <option value="">Select a partner</option>{partners.map(name => <option key={name}>{name}</option>)}</select></label>
       {[['awb', 'AWB number', 'text'], ['tracking', 'Tracking link', 'url'], ['actualCourier', 'Actual courier expense (₹)', 'number']].map(([key, label, type]) =>
-        <label key={key}><span className="label">{label}</span><input className="input" type={type} min="0" step="0.01" value={values[key] ?? ''} onChange={update(key)} /></label>)}
-      <button className="btn-outline sm:w-fit">Save shipment details</button>
+        <label key={key}><span className="label">{label}</span><input className="input" type={type} min="0" step="0.01" readOnly={bookingLinked && key === 'awb'} value={values[key] ?? ''} onChange={update(key)} /></label>)}
+      <button className="btn-outline sm:w-fit" disabled={bookingNow}>{booking?.state === 'pending' ? 'Verify and save existing AWB' : 'Save shipment details'}</button>
     </form>
-    {values.courier === 'Shadowfax' && <div className="mt-3 space-y-2">
+    {(values.courier === 'Shadowfax' || booking) && <div className="mt-3 space-y-2">
+      {canBook && <form className="flex flex-wrap items-end gap-2" onSubmit={bookShipment}>
+        <label><span className="label">Packed parcel weight (g)</span>
+          <input className="input" type="number" min="1" step="1" required value={weight}
+            readOnly={booking?.state === 'pending'} onChange={event => setWeight(event.target.value)} />
+        </label>
+        <button className="btn-primary" disabled={bookingNow || checking}>{bookingNow ? 'Booking…' : booking ? 'Retry Shadowfax booking' : 'Book with Shadowfax'}</button>
+      </form>}
+      {bookingLinked && <p>Booked in Shadowfax {booking.mode} · AWB {order.fulfilment.awb}</p>}
       <div className="flex flex-wrap gap-2">
-        <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ pincode: order.customer.pincode })}>Check delivery pincode</button>
-        <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ pincode: SITE.address.pin, leg: 'pickup' })}>Check store pickup pincode</button>
+        <button type="button" className="btn-outline" disabled={checking || bookingNow} onClick={() => checkShadowfax({ pincode: order.customer.pincode })}>Check delivery pincode</button>
+        <button type="button" className="btn-outline" disabled={checking || bookingNow} onClick={() => checkShadowfax({ pincode: SITE.address.pin, leg: 'pickup' })}>Check store pickup pincode</button>
         {order.fulfilment?.courier === 'Shadowfax' && order.fulfilment.awb &&
           <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ orderId: order.id })}>Check saved AWB</button>}
       </div>

@@ -59,7 +59,7 @@ function Orders({ orders, reload, note }) {
     <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl bg-cream p-3 text-sm">
       <div><label className="label" htmlFor="df">From date</label><input id="df" type="date" className="input" value={rng.from} onChange={(e) => setRng({ ...rng, from: e.target.value })} /></div>
       <div><label className="label" htmlFor="dt2">To date</label><input id="dt2" type="date" className="input" value={rng.to} onChange={(e) => setRng({ ...rng, to: e.target.value })} /></div>
-      <a className="btn-accent" href={`/api/admin/export?status=${filter}&from=${rng.from}&to=${rng.to}`}>⬇ Download orders (Excel / Sheets CSV)</a>
+      <a className="btn-accent" href={`/api/admin/export?format=shadowfax&status=${filter}&from=${rng.from}&to=${rng.to}`}>⬇ Download orders (Shadowfax Excel)</a>
     </div>
     {!list.length && <p>No orders yet.</p>}
     <div className="space-y-4">{list.map((o) => (

@@ -11,6 +11,7 @@ export default function Footer({ whatsapp }) {
           <Image src="/images/logo.jpg" alt="PODIKKAARAN" width={90} height={90} className="rounded-full bg-white p-1" />
           <p className="mt-3 font-display text-xl text-turmeric">{SITE.tagline}</p>
           <p className="text-sm opacity-80">{SITE.tagline2}</p>
+          <p className="mt-3 text-sm">Delivery partner: <strong>Shadowfax</strong></p>
         </div>
         <nav aria-label="Footer"><h2 className="mb-3 text-lg !text-turmeric">Explore</h2><ul className="space-y-1.5 text-sm">
           <L href="/about">About Us</L><L href="/shop">Shop Products</L><L href="/blog">Blog</L><L href="/contact">Contact Us</L>

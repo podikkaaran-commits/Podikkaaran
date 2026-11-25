@@ -28,6 +28,14 @@ export async function GET(req) {
   if (status && status !== 'All') orders = orders.filter((o) => o.status === status);
   if (from) orders = orders.filter((o) => saleDate(o.createdAt) >= from);
   if (to) orders = orders.filter((o) => saleDate(o.createdAt) <= to);
+  if (sp.get('format') === 'shadowfax') {
+    const { shadowfaxWorkbook } = await import('@/lib/shadowfax-export');
+    return new Response(await shadowfaxWorkbook(orders), { headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="podikkaaran-shadowfax-orders-' + saleDate(new Date().toISOString()) + '.xlsx"',
+      'Cache-Control': 'private, no-store',
+    } });
+  }
   const head = ['Order ID', 'Date', 'Time', 'Status', 'Payment Method', 'Payment Status', 'Customer Name', 'Mobile', 'House/Flat', 'Street', 'Area', 'City', 'State', 'Pincode', 'Items', 'Subtotal (INR)', 'Delivery Charge (INR)', 'Total (INR)', 'Combos', 'Shipment weight (g)', 'Manufacturing', 'Courier expense', 'Estimated profit', 'Recorded profit', 'Courier partner', 'AWB', 'Tracking link'];
   const rows = orders.map((o) => {
     const d = new Date(o.createdAt), ist = new Date(d.getTime() + 5.5 * 3600 * 1000).toISOString();
