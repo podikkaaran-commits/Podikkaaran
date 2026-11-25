@@ -14,6 +14,7 @@ export default function Checkout() {
   const { lines, items, combos, subtotal, blocked, settings, clear, ready, pin } = useCart(); const router = useRouter();
   const [f, setF] = useState({ name: '', mobile: '', house: '', street: '', area: '', city: '', state: 'Tamil Nadu', pincode: '' });
   const [selectedPayment, setPay] = useState(null), [errs, setErrs] = useState({}), [busy, setBusy] = useState(false), [msg, setMsg] = useState('');
+  const [awaitingOrder, setAwaitingOrder] = useState(null);
   useEffect(() => { if (pin && !f.pincode) setF((x) => ({ ...x, pincode: pin })); }, [pin]); // eslint-disable-line
   useEffect(() => { if (ready && lines.length) track('begin_checkout', { value: subtotal, items: lines.map((l) => itemOf(l, l.qty)) }); }, [ready]); // eslint-disable-line
 
@@ -37,23 +38,28 @@ export default function Checkout() {
   const done = (id, mobile) => { clear(); router.push(`/order?id=${id}&m=${mobile}&new=1`); };
 
   async function submit(e) {
-    e.preventDefault(); setMsg('');
+    e.preventDefault();
+    if (busy) return;
+    setMsg('');
     const v = validate(); setErrs(v); if (Object.keys(v).length) { document.getElementById('f-' + Object.keys(v)[0])?.focus(); return; }
-    if (busy || blocked || !lines.length || !pay) return;
+    if (blocked || !lines.length || !pay) return;
     if (pay === 'razorpay' && typeof window.Razorpay !== 'function') {
       setMsg('Payment checkout is loading. Please try again in a moment.');
       return;
     }
+    setAwaitingOrder(null);
     setBusy(true); trackPay(pay);
     try {
       const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer: f, items, combos, paymentMethod: pay }) });
       const j = await r.json();
       if (!r.ok) { setErrs(j.errors || {}); setMsg(j.errors?.items || j.errors?.payment || j.error || 'Please correct the highlighted fields.'); setBusy(false); return; }
       if (j.method === 'cod') return done(j.orderId, j.mobile);
+      let verificationStarted = false;
       const rz = new window.Razorpay({
         key: j.razorpay.keyId, amount: j.razorpay.amount, currency: 'INR', order_id: j.razorpay.orderId, name: 'PODIKKAARAN', description: `Order ${j.orderId}`,
         prefill: { name: f.name, contact: f.mobile },
         handler: async (resp) => {
+          verificationStarted = true;
           const request = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...resp, orderId: j.orderId }) };
           for (let attempt = 0; attempt < 4; attempt += 1) {
             const verification = await fetch('/api/payments/razorpay/verify', request).catch(() => null);
@@ -64,7 +70,11 @@ export default function Checkout() {
           setMsg('Payment confirmation is unavailable. If money was deducted, contact us with order ID ' + j.orderId);
           setBusy(false);
         },
-        modal: { ondismiss: () => { setMsg('Payment was not completed, so your order is not confirmed.'); setBusy(false); } },
+        modal: { ondismiss: () => {
+          if (verificationStarted) return;
+          setAwaitingOrder(`/order?id=${j.orderId}&m=${j.mobile}`);
+          setBusy(false);
+        } },
       });
       rz.open();
     } catch { setMsg('Network error. Please try again.'); setBusy(false); }
@@ -112,6 +122,9 @@ export default function Checkout() {
           <div className="flex justify-between border-t border-brown/10 pt-3 text-lg"><span>Grand total</span><b>{delivery === null ? 'Enter pincode' : rupee(total)}</b></div>
           <p className="text-xs">Delivery is charged once per order.</p>
           {!pay && <p className="err" role="status">Checkout is unavailable because no payment method is enabled.</p>}
+          {awaitingOrder && <p className="rounded-lg bg-turmeric/20 p-3 text-sm" role="status">
+            <strong>Awaiting payment.</strong> Your cart is still here. <Link href={awaitingOrder} className="underline">View payment status</Link>
+          </p>}
           {msg && <p className="err text-sm" role="alert">{msg}</p>}
           {blocked && <p className="err">Some items are unavailable. <Link href="/cart" className="underline">Go to cart</Link></p>}
           <button className="btn-primary w-full py-3 text-base" disabled={busy || blocked || !pay}>{busy ? 'Placing order…' : !pay ? 'Checkout unavailable' : pay === 'cod' ? 'Place order · Cash on delivery' : delivery === null ? 'Continue to payment' : `Pay ${rupee(total)}`}</button>

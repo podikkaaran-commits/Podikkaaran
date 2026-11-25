@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { rupee } from '@/lib/site';
+import { checkoutStatus, paymentStatus } from '@/lib/order-status';
+import OrderBadge from '@/components/OrderBadge';
 import { configuredCombos, orderLines } from '@/lib/combos';
 import BusinessOverview from '@/components/BusinessOverview';
 import AdminCombos, { ProductEligibility } from '@/components/AdminCombos';
@@ -63,8 +65,16 @@ function Orders({ orders, reload, note }) {
     <div className="space-y-4">{list.map((o) => (
       <article key={o.id} className="card p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-2"><div><b className="text-base">{o.id}</b><div className="text-xs">{new Date(o.createdAt).toLocaleString('en-IN')}</div></div>
-          <div className="flex items-center gap-2"><span className="rounded bg-cream px-2 py-1 text-xs">{o.payment.method === 'cod' ? 'COD' : 'Online'} · {o.payment.status}</span>
-            <select aria-label="Order status" className="input !w-auto" value={o.status} onChange={(e) => change(o.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></div></div>
+          <div className="flex flex-wrap items-center gap-2">
+            <OrderBadge status={checkoutStatus(o)} />
+            <span className="text-xs font-semibold">{o.payment.method === 'cod' ? 'COD' : 'Online'}</span>
+            {checkoutStatus(o).label !== paymentStatus(o.payment).label && <OrderBadge status={paymentStatus(o.payment)} />}
+            <label className="flex items-center gap-2 text-xs">
+              Delivery status
+              <select className="input !w-auto" value={o.status} onChange={(e) => change(o.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
+            </label>
+          </div>
+        </div>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <div><b>Customer</b><br />{o.customer.name}<br />{o.customer.mobile}</div>
           <div><b>Delivery address</b><br />{o.customer.house}, {o.customer.street}<br />{o.customer.area}, {o.customer.city}<br />{o.customer.state}<br /><b>Pincode {o.customer.pincode}</b></div>
