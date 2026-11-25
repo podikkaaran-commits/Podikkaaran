@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { rupee } from '@/lib/site';
 import { configuredCombos, orderLines } from '@/lib/combos';
+import BusinessOverview from '@/components/BusinessOverview';
 import AdminCombos, { ProductEligibility } from '@/components/AdminCombos';
 import { BusinessCosts, ComboAnalytics, Fulfilment } from '@/components/AdminBusiness';
 
@@ -34,10 +35,11 @@ export default function AdminApp() {
   return (
     <div className="wrap py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl">Admin dashboard</h1><div className="flex flex-wrap gap-2">
-        {['orders', 'products', 'Combo Offers', 'Combo Analytics', 'settings'].map((t) => <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-outline'}>{t[0].toUpperCase() + t.slice(1)}</button>)}
+        {['orders', 'Business Overview', 'products', 'Combo Offers', 'Combo Analytics', 'settings'].map((t) => <button key={t} onClick={() => setTab(t)} className={tab === t ? 'btn-primary' : 'btn-outline'}>{t[0].toUpperCase() + t.slice(1)}</button>)}
         <button onClick={logout} className="btn-outline">Log out</button></div></div>
       {flash && <p className="fixed right-4 top-20 z-50 rounded-lg bg-forest px-4 py-2 text-cream shadow-lg" role="status">{flash}</p>}
       {tab === 'orders' && <Orders orders={data.orders} reload={load} note={note} />}
+      {tab === 'Business Overview' && <BusinessOverview orders={data.orders} />}
       {tab === 'products' && <Products products={data.products} settings={data.settings} reload={load} note={note} />}
       {tab === 'Combo Offers' && <AdminCombos settings={data.settings} products={data.products} api={api} reload={load} note={note} />}
       {tab === 'Combo Analytics' && <ComboAnalytics orders={data.orders} />}
