@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { orderProfit } from '@/lib/combos';
 import { salesByPeriod, salesInRange, salesSummary } from '@/lib/combo-sales';
 import { ZONE_LABEL } from '@/lib/delivery';
-import { rupee } from '@/lib/site';
+import { rupee, SITE } from '@/lib/site';
 
 const amount = value => Number.isFinite(value) ? rupee(value) : '—';
 
@@ -42,6 +42,25 @@ export function Fulfilment({ order, api, note, reload }) {
   const [values, set] = useState(order.fulfilment || {});
   const update = key => e => set(current => ({ ...current, [key]: e.target.value }));
   const partners = ['Shadowfax', 'ATS', 'Shree Maruti', 'Other'];
+  const [carrierResult, setCarrierResult] = useState(null);
+  const [checking, setChecking] = useState(false);
+
+  async function checkShadowfax(query) {
+    setChecking(true);
+    setCarrierResult(null);
+    try {
+      const response = await fetch('/api/admin/shadowfax?' + new URLSearchParams(query));
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Shadowfax check failed.');
+      const leg = query.leg === 'pickup' ? 'pickup' : 'delivery';
+      const message = result.trackingStatus || (result.tiers.length ? 'Available ' + leg + ' tiers: ' + result.tiers.join(', ') : 'No ' + leg + ' tiers found for this pincode.');
+      setCarrierResult({ message: 'Shadowfax (' + result.mode + '): ' + message });
+    } catch (error) {
+      setCarrierResult({ error: error.message });
+    } finally {
+      setChecking(false);
+    }
+  }
   return <details className="mt-4 border-t border-brown/10 pt-3">
     <summary className="cursor-pointer font-semibold">Shipping and expenses {order.shipmentWeight > 500 && <span className="err">· Over 500g</span>}</summary>
     <dl className="my-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -57,6 +76,17 @@ export function Fulfilment({ order, api, note, reload }) {
         <label key={key}><span className="label">{label}</span><input className="input" type={type} min="0" step="0.01" value={values[key] ?? ''} onChange={update(key)} /></label>)}
       <button className="btn-outline sm:w-fit">Save shipment details</button>
     </form>
+    {values.courier === 'Shadowfax' && <div className="mt-3 space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ pincode: order.customer.pincode })}>Check delivery pincode</button>
+        <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ pincode: SITE.address.pin, leg: 'pickup' })}>Check store pickup pincode</button>
+        {order.fulfilment?.courier === 'Shadowfax' && order.fulfilment.awb &&
+          <button type="button" className="btn-outline" disabled={checking} onClick={() => checkShadowfax({ orderId: order.id })}>Check saved AWB</button>}
+      </div>
+      {checking && <p role="status">Checking Shadowfax…</p>}
+      {carrierResult?.message && <p role="status">{carrierResult.message}</p>}
+      {carrierResult?.error && <p className="err" role="alert">{carrierResult.error}</p>}
+    </div>}
   </details>;
 }
 
