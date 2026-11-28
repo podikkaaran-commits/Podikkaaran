@@ -97,6 +97,8 @@ export function Fulfilment({ order, api, note, reload }) {
     <summary className="cursor-pointer font-semibold">Shipping and expenses {order.shipmentWeight > 500 && <span className="err">· Over 500g</span>}</summary>
     <dl className="my-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
       {[['Shipment weight', order.shipmentWeight == null ? '—' : order.shipmentWeight + 'g'], ['Estimated courier', amount(order.expenses?.courier)],
+        ['Customer delivery charge', amount(order.deliveryCharge)], ['Actual courier', amount(order.fulfilment?.actualCourier)],
+        ['Shipping profit / loss', amount(order.deliveryCharge - order.fulfilment?.actualCourier)],
         ['Manufacturing', amount(order.expenses?.manufacturing)], ['Packaging', amount(order.expenses?.packaging)], ['Payment fee', amount(order.expenses?.paymentFee)],
         ['Extra expenses', amount(order.expenses?.extra)], ['Estimated profit', amount(orderProfit(order))], ['Recorded profit', amount(orderProfit(order, true))]
       ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd className="font-semibold">{value}</dd></div>)}

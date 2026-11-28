@@ -6,7 +6,7 @@ import curryHero from '../public/images/curry-hero.webp';
 import moringaHero from '../public/images/moringa-hero.webp';
 import paruppuHero from '../public/images/paruppu-hero.webp';
 import { getProducts, getSettings } from '@/lib/storefront';
-import { rupee, SITE } from '@/lib/site';
+import { SITE } from '@/lib/site';
 import { FAQ, faqSchema } from '@/lib/schema';
 import { POSTS } from '@/lib/blog';
 import ProductGrid from '@/components/ProductGrid';
@@ -41,7 +41,7 @@ export default async function Home() {
             <p className="mt-4 max-w-md text-lg">Pick curry leaf, moringa or paruppu podi. Mix a spoonful into hot rice with ghee, or serve it alongside idli and dosa.</p>
             <div className="mt-6 flex flex-wrap gap-3"><Link href="/shop" className="btn-primary px-7 py-3 text-base">Shop Now</Link><Link href="#categories" className="btn-outline px-7 py-3 text-base">Browse flavours</Link></div>
             <p className="mt-5 text-sm font-semibold">🚚 Delivery Available Across India · {s.deliveryTime}{s.codEnabled && ' · COD available'}</p>
-            <p className="text-sm">{products[0] && <><ProductPrice product={products[0]} /> per {products[0].weight} pack</>} · Delivery {rupee(s.deliveryChennai)} Chennai / {rupee(s.deliveryTN)} Tamil Nadu / {rupee(s.deliveryOther)} other states</p>
+            {products[0] && <p className="text-sm"><ProductPrice product={products[0]} /> per {products[0].weight} pack</p>}
           </div>
           <div className="relative mx-auto flex h-[260px] w-full max-w-md items-center justify-center sm:h-[420px] sm:items-end" aria-label="PODIKKAARAN Curry Leaf, Moringa and Paruppu podi pouches">
             <span aria-hidden="true" className="pointer-events-none absolute right-1 top-1 rotate-12 select-none text-2xl opacity-60 md:hidden">🌿</span>

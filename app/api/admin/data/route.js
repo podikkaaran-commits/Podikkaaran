@@ -5,6 +5,7 @@ import { updateOrder } from '@/lib/orders';
 import { configuredCombos, grams } from '@/lib/combos';
 import { businessSettings, eligibility, fulfilment, imagePath, optionalCost, validateCombo } from '@/lib/combo-admin';
 import { shadowfaxGet, shadowfaxMode } from '@/lib/shadowfax';
+import { validateShippingSettings } from '@/lib/shipping-admin';
 
 export const dynamic = 'force-dynamic';
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
@@ -21,6 +22,17 @@ export async function GET() {
 export async function PATCH(req) {
   if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const b = await req.json().catch(() => ({}));
+  if (b.kind === 'shipping') {
+    let shipping;
+    try {
+      shipping = validateShippingSettings(b.shipping);
+    } catch (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    const current = await getSettings();
+    await saveSettings({ ...current, ...shipping });
+    return NextResponse.json({ ok: true });
+  }
   if (b.kind === 'combo' || b.kind === 'business' || b.kind === 'fulfilment') {
     try {
       if (b.kind === 'fulfilment') {

@@ -17,6 +17,10 @@ const metrics = [
   ['COD pending', row => amount(row.codPending)],
   ['Estimated profit', row => coveredAmount(row.estimatedProfit, row.estimatedOrders), 'estimatedOrders'],
   ['Recorded profit', row => coveredAmount(row.recordedProfit, row.recordedOrders), 'recordedOrders'],
+  ['Delivery charges on orders', row => amount(row.shippingCharges)],
+  ['Delivery charges collected', row => amount(row.shippingCollected)],
+  ['Actual courier expenses', row => coveredAmount(row.actualCourier, row.courierOrders), 'courierOrders'],
+  ['Shipping profit / loss', row => coveredAmount(row.shippingProfit, row.courierOrders), 'courierOrders'],
 ];
 
 const dateLabel = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -60,7 +64,8 @@ export default function BusinessOverview({ orders }) {
           ))}
         </dl>
         <p className="text-sm">Sales, pending COD and profit use the order date. Receipts use the payment or delivery date when recorded.
-          Razorpay totals show captured payments before settlement fees or refunds. Product costs come from saved order costs.</p>
+          Razorpay totals show captured payments before settlement fees or refunds. Product costs come from saved order costs.
+          Shipping profit uses the customer delivery charge less actual courier cost for orders with a recorded courier expense.</p>
         {period !== 'all' && <div className="card overflow-x-auto p-3" tabIndex={0} role="region" aria-label="Period breakdown">
           <table className="w-full border-collapse text-left text-sm">
             <thead><tr><th scope="col" className="p-2">Period</th>{metrics.map(([label]) => <th key={label} scope="col" className="p-2">{label}</th>)}</tr></thead>

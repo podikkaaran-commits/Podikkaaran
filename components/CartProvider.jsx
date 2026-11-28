@@ -1,18 +1,25 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { track, itemOf } from '@/lib/analytics';
 import { quoteCombo } from '@/lib/combos';
+import { PIN_RE } from '@/lib/delivery';
+import { deliveryTotals, productTotals } from '@/lib/shipping';
 
 const Ctx = createContext(null);
 export const useCart = () => useContext(Ctx);
 
 export default function CartProvider({ products, settings, children }) {
+  const checkout = usePathname() === '/checkout';
   const [items, setItems] = useState([]);
   const [combos, setCombos] = useState([]);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [bump, setBump] = useState(0);
   const [pin, setPinState] = useState('');
+  const [pinResult, setPinResult] = useState(null);
+  const [pinRetry, setPinRetry] = useState(0);
+  const [coupon, setCoupon] = useState(null);
 
   useEffect(() => {
     try { setItems(JSON.parse(localStorage.getItem('pk_cart') || '[]')); setPinState(localStorage.getItem('pk_pin') || ''); } catch {}
@@ -22,6 +29,22 @@ export default function CartProvider({ products, settings, children }) {
   useEffect(() => { if (ready) localStorage.setItem('pk_cart', JSON.stringify(items)); }, [items, ready]);
   useEffect(() => { if (ready) localStorage.setItem('pk_combos', JSON.stringify(combos)); }, [combos, ready]);
   const setPin = (p) => { setPinState(p); try { localStorage.setItem('pk_pin', p); } catch {} };
+
+  useEffect(() => {
+    if (!PIN_RE.test(pin)) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const response = await fetch('/api/pincode?pin=' + encodeURIComponent(pin), { cache: 'no-store', signal: controller.signal });
+        if (!response.ok) throw new Error();
+        const rule = await response.json();
+        if (!controller.signal.aborted) setPinResult({ pin, retry: pinRetry, checkout, rule });
+      } catch {
+        if (!controller.signal.aborted) setPinResult({ pin, retry: pinRetry, checkout, error: 'Could not check delivery. Please try again.' });
+      }
+    })();
+    return () => controller.abort();
+  }, [pin, pinRetry, checkout]);
 
   const pmap = useMemo(() => Object.fromEntries(products.map((p) => [p.slug, p])), [products]);
   const lines = useMemo(() => {
@@ -49,7 +72,9 @@ export default function CartProvider({ products, settings, children }) {
     }));
   }, [items, combos, pmap, settings.combos, products]);
   const count = lines.reduce((t, l) => t + l.qty, 0);
-  const subtotal = lines.reduce((t, l) => t + l.qty * l.price, 0);
+  const pricing = productTotals(lines, coupon);
+  const deliveryResult = pinResult?.pin === pin && pinResult.retry === pinRetry && pinResult.checkout === checkout ? pinResult : null;
+  const delivery = deliveryTotals(deliveryResult?.rule, pricing.subtotal);
   const blocked = lines.some((l) => l.unavailable);
 
   const add = useCallback((slug, qty = 1, { silent } = {}) => {
@@ -90,10 +115,11 @@ export default function CartProvider({ products, settings, children }) {
     setBump(b => b + 1);
     if (!silent) setOpen(true);
   };
-  const clear = () => { setItems([]); setCombos([]); };
+  const clear = () => { setItems([]); setCombos([]); setCoupon(null); };
 
   return (
-    <Ctx.Provider value={{ products, settings, lines, items, combos, count, subtotal: Math.round(subtotal * 100) / 100, blocked, add, addCombo, remove, setQty, clear, open, setOpen, bump, pin, setPin, ready }}>
+    <Ctx.Provider value={{ products, settings, lines, items, combos, count, ...pricing, coupon, setCoupon, delivery, deliveryResult,
+      retryDelivery: () => setPinRetry(value => value + 1), blocked, add, addCombo, remove, setQty, clear, open, setOpen, bump, pin, setPin, ready }}>
       {children}
     </Ctx.Provider>
   );

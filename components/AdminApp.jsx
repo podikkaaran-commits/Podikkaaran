@@ -7,6 +7,7 @@ import { configuredCombos, orderLines } from '@/lib/combos';
 import BusinessOverview from '@/components/BusinessOverview';
 import AdminCombos, { ProductEligibility } from '@/components/AdminCombos';
 import { BusinessCosts, ComboAnalytics, Fulfilment } from '@/components/AdminBusiness';
+import AdminShipping from '@/components/AdminShipping';
 
 const STATUSES = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const api = (body) => fetch('/api/admin/data', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -45,7 +46,7 @@ export default function AdminApp() {
       {tab === 'products' && <Products products={data.products} settings={data.settings} reload={load} note={note} />}
       {tab === 'Combo Offers' && <AdminCombos settings={data.settings} products={data.products} api={api} reload={load} note={note} />}
       {tab === 'Combo Analytics' && <ComboAnalytics orders={data.orders} />}
-      {tab === 'settings' && <div className="space-y-4"><Settings settings={data.settings} reload={load} note={note} /><BusinessCosts business={data.settings.business} api={api} reload={load} note={note} /></div>}
+      {tab === 'settings' && <div className="space-y-4"><AdminShipping settings={data.settings} api={api} reload={load} note={note} /><Settings settings={data.settings} reload={load} note={note} /><BusinessCosts business={data.settings.business} api={api} reload={load} note={note} /></div>}
     </div>
   );
 }
@@ -182,10 +183,14 @@ function AddProduct({ combos, reload, note }) {
 function Settings({ settings, reload, note }) {
   const [s, setS] = useState(settings);
   const set = (k) => (e) => setS({ ...s, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
-  const save = async (e) => { e.preventDefault(); const r = await api({ kind: 'settings', settings: s }); if (r.ok) { note('Settings saved'); reload(); } };
+  const save = async (e) => {
+    e.preventDefault();
+    const { chennaiPinMin, chennaiPinMax, deliveryTime, whatsappNumber, codEnabled } = s;
+    const r = await api({ kind: 'settings', settings: { chennaiPinMin, chennaiPinMax, deliveryTime, whatsappNumber, codEnabled } });
+    if (r.ok) { note('Settings saved'); reload(); }
+  };
   const N = ([k, l]) => <div key={k}><label className="label" htmlFor={k}>{l}</label><input id={k} type="number" min="0" className="input" value={s[k]} onChange={set(k)} /></div>;
-  return (<form onSubmit={save} className="card max-w-xl space-y-4 p-5"><h2 className="text-xl">Delivery charges (per order)</h2>
-    <div className="grid gap-3 sm:grid-cols-3">{[['deliveryChennai', 'Within Chennai (₹)'], ['deliveryTN', 'Tamil Nadu – outside Chennai (₹)'], ['deliveryOther', 'Other states (₹)']].map(N)}</div>
+  return (<form onSubmit={save} className="card max-w-xl space-y-4 p-5"><h2 className="text-xl">Delivery area and store settings</h2>
     <div className="grid gap-3 sm:grid-cols-2">{[['chennaiPinMin', 'Chennai pincode from'], ['chennaiPinMax', 'Chennai pincode to']].map(N)}</div>
     <div><label className="label" htmlFor="dt">Delivery time text</label><input id="dt" className="input" value={s.deliveryTime} onChange={set('deliveryTime')} /></div>
     <div><label className="label" htmlFor="wa">WhatsApp Business number (digits, with country code, e.g. 91XXXXXXXXXX)</label><input id="wa" className="input" value={s.whatsappNumber} onChange={set('whatsappNumber')} /></div>

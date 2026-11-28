@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartProvider';
 import { QtyStepper } from '@/components/CartLines';
 import { track, itemOf } from '@/lib/analytics';
-import { rupee } from '@/lib/site';
 
 export default function ProductBuy({ p }) {
   const { add, ready, settings } = useCart(); const router = useRouter();
@@ -38,7 +37,7 @@ export default function ProductBuy({ p }) {
         </div>
         <ul className="mt-5 space-y-1 rounded-xl bg-cream p-4 text-sm">
           <li>🚚 <b>Delivery Available Across India</b> · {settings.deliveryTime}</li>
-          <li>Delivery charges (once per order): Chennai {rupee(settings.deliveryChennai)} · Rest of Tamil Nadu {rupee(settings.deliveryTN)} · Other states {rupee(settings.deliveryOther)}</li>
+          <li>Delivery is calculated once per order using your pincode.</li>
           {settings.codEnabled && <li>💵 Cash on Delivery available</li>}
         </ul>
 

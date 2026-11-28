@@ -1,5 +1,6 @@
 import './globals.css';
-import { SITE } from '@/lib/site';
+import Link from 'next/link';
+import { SITE, rupee } from '@/lib/site';
 import { getProducts, getSettings } from '@/lib/storefront';
 import { publicSettings } from '@/lib/db';
 import CartProvider from '@/components/CartProvider';
@@ -33,6 +34,9 @@ export default async function RootLayout({ children }) {
       <body>
         <CartProvider products={products} settings={settings}>
           <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">Skip to content</a>
+          {rawSettings.shipping.freeEnabled && <div className="bg-forest px-4 py-2 text-center text-sm font-semibold text-cream">
+            <Link href="/policies/shipping-policy" className="hover:underline">Enjoy FREE Delivery on orders of {rupee(rawSettings.shipping.minimums.chennai)} and above in Chennai!</Link>
+          </div>}
           <Header />
           <main id="main" className="page-in">{children}</main>
           <Footer whatsapp={settings.whatsappNumber} />

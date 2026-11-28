@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/components/CartProvider';
 import CartLines from '@/components/CartLines';
+import ShippingProgress from '@/components/ShippingProgress';
 import { rupee } from '@/lib/site';
 
 export default function CartDrawer() {
-  const { open, setOpen, count, subtotal, blocked, settings } = useCart();
+  const { open, setOpen, count, subtotal, blocked } = useCart();
   const pathname = usePathname();
   useEffect(() => {
     if (!open) return;
@@ -26,7 +27,7 @@ export default function CartDrawer() {
             {count > 0 && (
               <div className="space-y-2 border-t border-brown/10 p-4">
                 <div className="flex justify-between font-semibold"><span>Subtotal</span><span>{rupee(subtotal)}</span></div>
-                <p className="text-xs">Delivery ({rupee(settings.deliveryChennai)} Chennai · {rupee(settings.deliveryTN)} rest of Tamil Nadu · {rupee(settings.deliveryOther)} other states) is added once per order at checkout.</p>
+                <ShippingProgress />
                 <Link href={blocked ? '/cart' : '/checkout'} onClick={() => setOpen(false)} className="btn-primary w-full">{blocked ? 'Fix unavailable items' : 'Proceed to Checkout'}</Link>
                 <Link href="/cart" onClick={() => setOpen(false)} className="btn-outline w-full">View cart</Link>
                 <button onClick={() => setOpen(false)} className="w-full text-sm underline">Continue shopping</button>
